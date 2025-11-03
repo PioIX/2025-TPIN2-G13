@@ -16,11 +16,13 @@ export default function GameSingle({ userId, imageProfile }) {
     let player, cpu, ball, boot1, bootCPU;
     let cursors, keys;
     let score1 = 0, scoreCPU = 0;
-    let scoreText, timerText;
+    let scoreText, timerText, countdownText;
+    let countdown = 3
     let ground, goalLeft, goalRight;
     let gameTime = 60;
     let gameStarted = false;
     let gameOver = false;
+    let goalJustScored = false;
 
     const config = {
       type: Phaser.AUTO,
@@ -231,6 +233,15 @@ export default function GameSingle({ userId, imageProfile }) {
         strokeThickness: 3,
       }).setOrigin(0.5).setDepth(10);
 
+      // 🎬 COUNTDOWN INICIAL
+      countdownText = scene.add.text(640, 360, countdown.toString(), {
+        fontSize: "120px",
+        fill: "#ffffff",
+        fontFamily: "Arial",
+        stroke: "#000000",
+        strokeThickness: 8,
+      }).setOrigin(0.5).setDepth(20);
+
       // Controles
       cursors = scene.input.keyboard.createCursorKeys();
       keys = scene.input.keyboard.addKeys({
@@ -241,10 +252,39 @@ export default function GameSingle({ userId, imageProfile }) {
       });
 
       // Iniciar juego después de 3 segundos
-      scene.time.delayedCall(3000, () => {
-        gameStarted = true;
-        startTimer(scene);
+      scene.time.addEvent({
+        delay: 1000,
+        repeat: 2,
+        callback: () => {
+          countdown--;
+          if (countdown > 0) {
+            countdownText.setText(countdown.toString());
+          } else {
+            countdownText.setText("GO!");
+            scene.time.delayedCall(500, () => {
+              countdownText.destroy();
+              gameStarted = true;
+              startTimer(scene);
+            });
+          }
+        }
       });
+
+      function startTimer(scene) {
+        scene.time.addEvent({
+          delay: 1000,
+          repeat: gameTime - 1,
+          callback: () => {
+            gameTime--;
+            timerText.setText(formatTime(gameTime));
+            
+            if (gameTime <= 0) {
+              endGame(scene);
+            }
+          }
+        });
+      }
+
 
       function startTimer(scene) {
         scene.time.addEvent({
@@ -264,13 +304,14 @@ export default function GameSingle({ userId, imageProfile }) {
       }
 
       function goalScored(scorer) {
-        if (!gameStarted || gameOver) return;
-
+        if (!gameStarted || gameOver || goalJustScored) return;
+        goalJustScored = true;
         if (scorer === 'player') score1++;
         else scoreCPU++;
-
         scoreText.setText(`${score1} - ${scoreCPU}`);
         resetPositions();
+        // Permitir nuevo gol después de 1 segundo
+        scene.time.delayedCall(1000, () => { goalJustScored = false; });
       }
 
       function endGame() {
@@ -290,6 +331,24 @@ export default function GameSingle({ userId, imageProfile }) {
         if (score1 > scoreCPU) winnerMsg = "¡GANASTE!";
         else if (scoreCPU > score1) winnerMsg = "¡PERDISTE!";
 
+        // Título GAME OVER
+        const titleText = scene.add.text(640, 180, "GAME OVER", {
+          fontSize: "72px",
+          fill: "#ffff00",
+          fontFamily: "Arial",
+          stroke: "#000000",
+          strokeThickness: 6,
+        }).setOrigin(0.5).setDepth(51);
+
+        // Score final
+        const finalScoreText = scene.add.text(640, 270, `${score1} - ${scoreCPU}`, {
+          fontSize: "64px",
+          fill: "#ffffff",
+          fontFamily: "Arial",
+          stroke: "#000000",
+          strokeThickness: 5,
+        }).setOrigin(0.5).setDepth(51);
+
         const winnerText = scene.add.text(640, 300, winnerMsg, {
           fontSize: "72px",
           fill: "#ffff00",
@@ -298,25 +357,57 @@ export default function GameSingle({ userId, imageProfile }) {
           strokeThickness: 6,
         }).setOrigin(0.5).setDepth(51);
 
-        // Botón manual para volver
-        const buttonBg = scene.add.rectangle(640, 500, 300, 70, 0x4CAF50);
-        buttonBg.setDepth(51);
-        buttonBg.setInteractive({ useHandCursor: true });
+        // 🔄 Botón REINICIAR
+        const restartButton = scene.add.rectangle(440, 480, 280, 70, 0x2196F3);
+        restartButton.setDepth(51);
+        restartButton.setInteractive({ useHandCursor: true });
 
-        const buttonText = scene.add.text(640, 500, "Volver al Lobby", {
-          fontSize: "32px",
+        const restartText = scene.add.text(440, 480, "Reiniciar Partido", {
+          fontSize: "28px",
           fill: "#ffffff",
           fontFamily: "Arial",
         }).setOrigin(0.5).setDepth(52);
 
-        buttonBg.on("pointerover", () => buttonBg.setFillStyle(0x66BB6A));
-        buttonBg.on("pointerout", () => buttonBg.setFillStyle(0x4CAF50));
-        buttonBg.on("pointerdown", () => {
-          router.replace("/Kabegol/Home");
+        restartButton.on('pointerover', () => {
+          restartButton.setFillStyle(0x42A5F5);
         });
 
-        // 🔁 Auto volver al lobby luego de 3 segundos
-        scene.time.delayedCall(3000, () => {
+        restartButton.on('pointerout', () => {
+          restartButton.setFillStyle(0x2196F3);
+        });
+
+        restartButton.on("pointerdown", () => {
+          game.destroy(true);
+          gameRef.current = null;
+          router.refresh();
+        });
+
+        // 🏠 Botón VOLVER AL LOBBY
+        const homeButton = scene.add.rectangle(840, 480, 280, 70, 0x4CAF50);
+        homeButton.setDepth(51);
+        homeButton.setInteractive({ useHandCursor: true });
+
+        const homeText = scene.add.text(840, 480, "Volver al Menú", {
+          fontSize: "28px",
+          fill: "#ffffff",
+          fontFamily: "Arial",
+        }).setOrigin(0.5).setDepth(52);
+
+        homeButton.on('pointerover', () => {
+          homeButton.setFillStyle(0x66BB6A);
+        });
+
+        homeButton.on('pointerout', () => {
+          homeButton.setFillStyle(0x4CAF50);
+        });
+
+        homeButton.on('pointerdown', () => {
+          window.location.href = "/Kabegol/Home";
+        });
+      
+
+        // 🔁 Auto volver al lobby luego de 10 segundos
+        scene.time.delayedCall(10000, () => {
           router.replace("/Kabegol/Home");
         });
       }
