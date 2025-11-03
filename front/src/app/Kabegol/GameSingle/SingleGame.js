@@ -174,7 +174,7 @@ export default function GameSingle({ userId, imageProfile }) {
             const mins = Math.floor(gameTime / 60);
             const secs = gameTime % 60;
             timerText.setText(`${mins}:${secs.toString().padStart(2, '0')}`);
-            
+
             if (gameTime <= 0) {
               endGame();
             }
@@ -184,10 +184,10 @@ export default function GameSingle({ userId, imageProfile }) {
 
       function goalScored(scorer) {
         if (!gameStarted || gameOver) return;
-        
+
         if (scorer === 'player') score1++;
         else scoreCPU++;
-        
+
         scoreText.setText(`${score1} - ${scoreCPU}`);
         resetPositions();
       }
@@ -195,15 +195,20 @@ export default function GameSingle({ userId, imageProfile }) {
       function endGame() {
         gameOver = true;
         gameStarted = false;
-        
-        // Similar a tu Game Over actual pero sin socket
+
+        // Frenar todo
+        player.body.setVelocity(0, 0);
+        cpu.body.setVelocity(0, 0);
+        ball.body.setVelocity(0, 0);
+
+        // Pantalla Game Over
         const overlay = scene.add.rectangle(640, 360, 1280, 720, 0x000000, 0.8);
         overlay.setDepth(50);
-        
+
         let winnerMsg = "EMPATE!";
         if (score1 > scoreCPU) winnerMsg = "¡GANASTE!";
         else if (scoreCPU > score1) winnerMsg = "¡PERDISTE!";
-        
+
         const winnerText = scene.add.text(640, 300, winnerMsg, {
           fontSize: "72px",
           fill: "#ffff00",
@@ -211,10 +216,30 @@ export default function GameSingle({ userId, imageProfile }) {
           stroke: "#000000",
           strokeThickness: 6,
         }).setOrigin(0.5).setDepth(51);
-        
-        // Botón volver
-        // ...
+
+        // Botón manual para volver
+        const buttonBg = scene.add.rectangle(640, 500, 300, 70, 0x4CAF50);
+        buttonBg.setDepth(51);
+        buttonBg.setInteractive({ useHandCursor: true });
+
+        const buttonText = scene.add.text(640, 500, "Volver al Lobby", {
+          fontSize: "32px",
+          fill: "#ffffff",
+          fontFamily: "Arial",
+        }).setOrigin(0.5).setDepth(52);
+
+        buttonBg.on("pointerover", () => buttonBg.setFillStyle(0x66BB6A));
+        buttonBg.on("pointerout", () => buttonBg.setFillStyle(0x4CAF50));
+        buttonBg.on("pointerdown", () => {
+          router.replace("/Kabegol/Home");
+        });
+
+        // 🔁 Auto volver al lobby luego de 3 segundos
+        scene.time.delayedCall(3000, () => {
+          router.replace("/Kabegol/Home");
+        });
       }
+
 
       function resetPositions() {
         player.setPosition(200, 580);
@@ -248,7 +273,7 @@ export default function GameSingle({ userId, imageProfile }) {
 
       // 🤖 IA del CPU (básica)
       const distanceToBall = Phaser.Math.Distance.Between(cpu.x, cpu.y, ball.x, ball.y);
-      
+
       // Seguir la pelota
       if (ball.x < cpu.x - 20) {
         cpu.body.setVelocityX(-200);
