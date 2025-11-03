@@ -55,8 +55,71 @@ export default function GameSingle({ userId, imageProfile }) {
       // Cargar foto de perfil si existe
     }
 
+    function createSoccerBall(scene) {
+      const graphics = scene.make.graphics({ x: 0, y: 0, add: false });
+      const radius = 14;
+
+      graphics.fillStyle(0xffffff, 1);
+      graphics.fillCircle(radius, radius, radius);
+
+      graphics.fillStyle(0x000000, 1);
+      graphics.beginPath();
+      const pentagonRadius = radius * 0.35;
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+        const x = radius + Math.cos(angle) * pentagonRadius;
+        const y = radius + Math.sin(angle) * pentagonRadius;
+        if (i === 0) {
+          graphics.moveTo(x, y);
+        } else {
+          graphics.lineTo(x, y);
+        }
+      }
+      graphics.closePath();
+      graphics.fillPath();
+
+      const positions = [
+        { angle: 0, distance: 0.7 },
+        { angle: 72, distance: 0.7 },
+        { angle: 144, distance: 0.7 },
+        { angle: 216, distance: 0.7 },
+        { angle: 288, distance: 0.7 },
+      ];
+
+      positions.forEach(pos => {
+        const angleRad = (pos.angle * Math.PI) / 180;
+        const centerX = radius + Math.cos(angleRad) * radius * pos.distance;
+        const centerY = radius + Math.sin(angleRad) * radius * pos.distance;
+        const smallRadius = radius * 0.25;
+
+        graphics.fillStyle(0x000000, 1);
+        graphics.beginPath();
+        for (let i = 0; i < 5; i++) {
+          const angle = (i * 2 * Math.PI / 5) - Math.PI / 2 + angleRad;
+          const x = centerX + Math.cos(angle) * smallRadius;
+          const y = centerY + Math.sin(angle) * smallRadius;
+          if (i === 0) {
+            graphics.moveTo(x, y);
+          } else {
+            graphics.lineTo(x, y);
+          }
+        }
+        graphics.closePath();
+        graphics.fillPath();
+      });
+
+      graphics.lineStyle(1, 0xcccccc, 0.5);
+      graphics.strokeCircle(radius, radius, radius);
+
+      graphics.generateTexture('soccerball', radius * 2, radius * 2);
+      graphics.destroy();
+    }
+
     function create() {
       const scene = this;
+
+
+      createSoccerBall(scene);
 
       // Fondo
       const bg = scene.add.image(640, 360, "background");
@@ -66,20 +129,43 @@ export default function GameSingle({ userId, imageProfile }) {
       ground = scene.add.rectangle(640, 643, 1280, 10, 0x000000, 0);
       scene.physics.add.existing(ground, true);
 
-      // Arcos
-      const arcoLeft = scene.add.image(25, 550, "arco");
-      arcoLeft.setDisplaySize(80, 200);
-      arcoLeft.setDepth(0);
+      //Arcos
+      const arcoLeftImage = scene.add.image(25, 550, "arco");
+      arcoLeftImage.setDisplaySize(80, 200);
+      arcoLeftImage.setDepth(0);
 
-      const arcoRight = scene.add.image(1255, 550, "arco");
-      arcoRight.setDisplaySize(80, 200);
-      arcoRight.setFlipX(true);
-      arcoRight.setDepth(0);
+      const arcoRightImage = scene.add.image(1255, 550, "arco");
+      arcoRightImage.setDisplaySize(80, 200);
+      arcoRightImage.setFlipX(true);
+      arcoRightImage.setDepth(0);
 
-      goalLeft = scene.add.rectangle(20, 590, 40, 160, 0xff0000, 0);
-      goalRight = scene.add.rectangle(1260, 590, 40, 160, 0x0000ff, 0);
+      goalLeft = scene.add.rectangle(20, 550, 40, 160, 0xff0000, 0);
+      goalRight = scene.add.rectangle(1260, 550, 40, 160, 0x0000ff, 0);
       scene.physics.add.existing(goalLeft, true);
       scene.physics.add.existing(goalRight, true);
+
+      // Travesaños
+      const travesañoIzquierda = scene.add.rectangle(12, 465, 80, 10, 0xFF0000, 0); // Parte superior izquierda
+      scene.physics.add.existing(travesañoIzquierda, true);
+      travesañoIzquierda.setDepth(1);
+
+      const travesañoDerecha = scene.add.rectangle(1265, 465, 80, 10, 0xFF0000, 0); // Parte superior derecha
+      scene.physics.add.existing(travesañoDerecha, true);
+      travesañoDerecha.setDepth(1);
+
+      // Pelota
+      ball = scene.add.sprite(640, 300, 'soccerball');
+      ball.setDepth(1);
+      scene.physics.add.existing(ball);
+      ball.body.setCollideWorldBounds(true);
+      ball.body.setBounce(0.7);
+      ball.body.setCircle(15);
+      ball.body.setMass(0.4);
+      ball.body.setDrag(50, 0);
+
+      // Colisiones con el travesaño
+      scene.physics.add.collider(ball, travesañoIzquierda, handleBallHitTravesaño, null, scene);
+      scene.physics.add.collider(ball, travesañoDerecha, handleBallHitTravesaño, null, scene);
 
       // JUGADOR (tú)
       player = scene.add.circle(200, 580, 30, 0xff0000);
@@ -112,16 +198,6 @@ export default function GameSingle({ userId, imageProfile }) {
       bootCPU.setFlipX(true);
       bootCPU.isKicking = false;
 
-      // Pelota
-      ball = scene.add.circle(640, 300, 15, 0xffffff);
-      ball.setDepth(1);
-      scene.physics.add.existing(ball);
-      ball.body.setCollideWorldBounds(true);
-      ball.body.setBounce(0.7);
-      ball.body.setCircle(15);
-      ball.body.setMass(0.4);
-      ball.body.setDrag(50, 0);
-
       // Colisiones
       scene.physics.add.collider(player, ground);
       scene.physics.add.collider(cpu, ground);
@@ -132,6 +208,11 @@ export default function GameSingle({ userId, imageProfile }) {
 
       scene.physics.add.overlap(ball, goalLeft, () => goalScored('cpu'), null, scene);
       scene.physics.add.overlap(ball, goalRight, () => goalScored('player'), null, scene);
+
+      function handleBallHitTravesaño(ball, travesaño) {
+        // Rebote hacia abajo si la pelota golpea el travesaño
+        ball.body.setVelocityY(-ball.body.velocity.y);  // Cambiar dirección vertical de la pelota
+      }
 
       // UI
       scoreText = scene.add.text(640, 30, "0 - 0", {
