@@ -23,6 +23,8 @@ export default function GameSingle({ userId, imageProfile }) {
     let gameStarted = false;
     let gameOver = false;
     let goalJustScored = false;
+    let CPU, cpuState; // declaralos arriba del todo
+    
 
     const config = {
       type: Phaser.AUTO,
@@ -117,6 +119,41 @@ export default function GameSingle({ userId, imageProfile }) {
       graphics.destroy();
     }
 
+    // ======= FUNCIONES AUXILIARES CPU =======
+
+    function clamp(v, a, b) {
+      return Math.max(a, Math.min(b, v));
+    }
+
+    function predictLandingX(ball, gravityY, groundY, fieldLeft, fieldRight) {
+      const g = gravityY;
+      const y = ball.y;
+      const vy = ball.body.velocity.y;
+      const yGround = groundY;
+
+      const a = 0.5 * g;
+      const b = vy;
+      const c = y - yGround;
+
+      const disc = b * b - 4 * a * c;
+      if (disc < 0) return ball.x;
+
+      const t1 = (-b + Math.sqrt(disc)) / (2 * a);
+      const t2 = (-b - Math.sqrt(disc)) / (2 * a);
+      const t = Math.max(t1, t2);
+
+      if (!isFinite(t) || t <= 0) return ball.x;
+
+      const xPred = ball.x + ball.body.velocity.x * t;
+      return clamp(xPred, fieldLeft + 20, fieldRight - 20);
+    }
+
+    function isDanger(ball, goalRightX, dangerRadius) {
+      const nearRight = (ball.x > goalRightX - dangerRadius);
+      const comingToRight = ball.body.velocity.x > -20;
+      return nearRight && comingToRight;
+    }
+
     function create() {
       const scene = this;
 
@@ -200,13 +237,93 @@ export default function GameSingle({ userId, imageProfile }) {
       bootCPU.setFlipX(true);
       bootCPU.isKicking = false;
 
+      // === IA CPU: estado y constantes (sin cambiar velocidades base) ===
+      CPU = {
+        // campo y referencias
+        fieldLeft: 0,
+        fieldRight: 1280,
+        groundY: 628,           // aprox: 643 (suelo) - 15 (radio pelota)
+        goalRightX: 1260,       // arco del CPU
+        homeX: 1040,            // “posición base” del CPU
+        defendZoneX: 1080,      // línea de defensa por delante del arco
+
+        // lógica
+        thinkMs: 120,           // “tiempo de reacción” humano
+        lastThink: 0,
+        deadzone: 14,           // anti-oscilación
+        hysteresis: 8,
+        interceptTol: 18,       // tolerancia al x de intercepción
+        dangerRadius: 220,      // si la pelota está cerca del arco propio
+        closeBallDist: 86,      // rango para intentar patada
+        airBlockDist: 140,      // rango para salto de bloqueo
+        headChance: 0.35        // chance de cabecear en vez de esperar
+      };
+
+      cpuState = {
+        mode: 'INTERCEPT',      // INTERCEPT | DEFEND | CLEAR | HOLD
+        targetX: CPU.homeX,
+        lockUntil: 0,           // evita cambiar de idea muy seguido
+        rndBias: (Math.random() * 40) - 20  // sesgo sutil para “personalidad”
+      };
+
+      // util: clamp
+      function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+      // Predice dónde cae la pelota (x) suponiendo física Arcade
+      function predictLandingX() {
+        const g = scene.physics.world.gravity.y;        // ~600
+        const y = ball.y;
+        const vy = ball.body.velocity.y;
+        const yGround = CPU.groundY;
+
+        // Si ya va subiendo poco, igual predecimos el próximo cruce hacia abajo
+        const a = 0.5 * g;
+        const b = vy;
+        const c = y - yGround;
+
+        // t = tiempo hasta tocar “piso” (solución positiva de la cuadrática)
+        const disc = b * b - 4 * a * c;
+        if (disc < 0) return ball.x; // fallback seguro
+
+        const t1 = (-b + Math.sqrt(disc)) / (2 * a);
+        const t2 = (-b - Math.sqrt(disc)) / (2 * a);
+        const t = Math.max(t1, t2);
+
+        if (!isFinite(t) || t <= 0) return ball.x;
+
+        const xPred = ball.x + ball.body.velocity.x * t;
+        return clamp(xPred, CPU.fieldLeft + 20, CPU.fieldRight - 20);
+      }
+
+      // ¿La pelota amenaza el arco del CPU?
+      function isDanger() {
+        const nearRight = (ball.x > CPU.goalRightX - CPU.dangerRadius);
+        const comingToRight = ball.body.velocity.x > -20; // no se aleja fuerte
+        return nearRight && comingToRight;
+      }
+
+
+
+
       // Colisiones
       scene.physics.add.collider(player, ground);
       scene.physics.add.collider(cpu, ground);
       scene.physics.add.collider(ball, ground);
       scene.physics.add.collider(player, cpu);
-      scene.physics.add.collider(player, ball);
       scene.physics.add.collider(cpu, ball);
+
+      scene.physics.add.collider(player, ball, handleBallHit, null, scene);
+
+      function handleBallHit(player, ball) {
+        if (!gameStarted || gameOver) return;
+        const horizontalDirection = ball.x > player.x ? 1 : -1;
+
+        ball.body.setVelocity(
+          horizontalDirection * 150, // empuje suave horizontal
+          -100                       // empuje suave hacia arriba
+        );
+      }
+
 
       scene.physics.add.overlap(ball, goalLeft, () => goalScored('cpu'), null, scene);
       scene.physics.add.overlap(ball, goalRight, () => goalScored('player'), null, scene);
@@ -277,7 +394,7 @@ export default function GameSingle({ userId, imageProfile }) {
           callback: () => {
             gameTime--;
             timerText.setText(formatTime(gameTime));
-            
+
             if (gameTime <= 0) {
               endGame(scene);
             }
@@ -379,7 +496,7 @@ export default function GameSingle({ userId, imageProfile }) {
         restartButton.on("pointerdown", () => {
           game.destroy(true);
           gameRef.current = null;
-          router.refresh();
+          window.location.reload();
         });
 
         // 🏠 Botón VOLVER AL LOBBY
@@ -404,7 +521,7 @@ export default function GameSingle({ userId, imageProfile }) {
         homeButton.on('pointerdown', () => {
           window.location.href = "/Kabegol/Home";
         });
-      
+
 
         // 🔁 Auto volver al lobby luego de 10 segundos
         scene.time.delayedCall(10000, () => {
@@ -423,7 +540,41 @@ export default function GameSingle({ userId, imageProfile }) {
       }
     }
 
+    function animateKick(boot, scene) {
+      if (boot.isKicking) return;
+      boot.isKicking = true;
+
+      scene.tweens.add({
+        targets: boot,
+        angle: boot.flipX ? 35 : -35,
+        duration: 120,
+        yoyo: true,
+        ease: 'Power2',
+        onComplete: () => {
+          boot.isKicking = false;
+          boot.angle = 0;
+        }
+      });
+    }
+
+    function performKick(player, ball, force = 500) {
+      if (!gameStarted || gameOver) return;
+
+      const distance = Phaser.Math.Distance.Between(player.x, player.y, ball.x, ball.y);
+      if (distance < 80) {
+        const angle = Phaser.Math.Angle.Between(player.x, player.y, ball.x, ball.y);
+        const extraForce = player.body.velocity.y > 0 ? 1.3 : 1;
+
+        ball.body.setVelocity(
+          Math.cos(angle) * force * extraForce,
+          Math.sin(angle) * force * extraForce - 150
+        );
+      }
+    }
+
+
     function update(time) {
+      const scene = this
       if (!gameStarted || gameOver) return;
 
       // 🎮 Controles del JUGADOR
@@ -435,6 +586,13 @@ export default function GameSingle({ userId, imageProfile }) {
         player.body.setVelocityX(0);
       }
 
+      // 👟 Patada jugador (igual que en multi: tecla R, anim + performKick con 700)
+      if (Phaser.Input.Keyboard.JustDown(keys.r)) {
+        animateKick(boot1, this);
+        performKick(player, ball, 700);
+      }
+
+
       if (keys.w.isDown && player.body.touching.down) {
         player.body.setVelocityY(-450);
       }
@@ -443,26 +601,107 @@ export default function GameSingle({ userId, imageProfile }) {
       boot1.x = player.x;
       boot1.y = player.y + 48;
 
-      // 🤖 IA del CPU (básica)
-      const distanceToBall = Phaser.Math.Distance.Between(cpu.x, cpu.y, ball.x, ball.y);
+      // ================= IA del CPU (humanoide) =================
+      if (time - CPU.lastThink >= CPU.thinkMs) {
+        CPU.lastThink = time;
 
-      // Seguir la pelota
-      if (ball.x < cpu.x - 20) {
+        // 1) Selección de modo: DEFENDER si hay peligro, sino INTERCEPT/CLEAR
+        if (isDanger(ball, CPU.goalRightX, CPU.dangerRadius)) {
+          cpuState.mode = 'DEFEND';
+          // Pararse entre la pelota y el arco, sin meterse dentro del arco
+          const shieldX = clamp(ball.x - 60, CPU.defendZoneX, CPU.fieldRight - 30);
+          cpuState.targetX = shieldX + cpuState.rndBias;
+          cpuState.lockUntil = time + 160; // pequeño "compromiso" a defender
+        } else {
+          const distToBall = Phaser.Math.Distance.Between(cpu.x, cpu.y, ball.x, ball.y);
+
+          // Si está muy cerca de la pelota, prioriza resolver (CLEAR/SHOOT)
+          if (distToBall < CPU.closeBallDist + 12) {
+            cpuState.mode = 'CLEAR';
+            cpuState.targetX = ball.x + (ball.x > cpu.x ? -4 : 4); // leve ajuste para perfilarse
+            cpuState.lockUntil = time + 140;
+          } else {
+            // INTERCEPT: ir al x donde va a picar; si no vuela, ir directo al balón
+            const xPred = (ball.body.velocity.y > -50 || ball.y < cpu.y - 30)
+              ? predictLandingX(
+                ball,
+                scene.physics.world.gravity.y,
+                CPU.groundY,
+                CPU.fieldLeft,
+                CPU.fieldRight
+              )
+              : ball.x;
+
+            cpuState.mode = 'INTERCEPT';
+            cpuState.targetX = clamp(
+              xPred + cpuState.rndBias,
+              CPU.fieldLeft + 40,
+              CPU.fieldRight - 40
+            );
+          }
+        }
+
+        // 2) Decisiones de salto (bloqueo aéreo / cabeceo)
+        const nearHoriz = Math.abs(cpu.x - ball.x) < 36;
+        const ballAbove = (ball.y < cpu.y - 10);
+        const closeForAirBlock = Phaser.Math.Distance.Between(cpu.x, cpu.y, ball.x, ball.y) < CPU.airBlockDist;
+
+        if (
+          cpu.body.touching.down &&
+          closeForAirBlock &&
+          ballAbove &&
+          (isDanger(ball, CPU.goalRightX, CPU.dangerRadius) || Math.random() < CPU.headChance)
+        ) {
+          cpu.body.setVelocityY(-450); // mismo salto que tu player
+        }
+
+        // 3) Intento de patada (cuando conviene)
+        const closeToShoot = Phaser.Math.Distance.Between(cpu.x, cpu.y, ball.x, ball.y) < CPU.closeBallDist;
+        const isBallToLeft = ball.x < cpu.x;
+
+        if (closeToShoot && time >= cpuState.lockUntil) {
+          // a) Pelota baja que viene hacia mí
+          const lowBall = (ball.y > cpu.y - 8);
+          const coming = isBallToLeft ? (ball.body.velocity.x > -20) : (ball.body.velocity.x < 20);
+
+          // b) Alineado horizontalmente
+          const aligned = Math.abs(cpu.x - ball.x) < 20;
+
+          if ((lowBall && coming) || aligned) {
+            animateKick(bootCPU, scene);
+            performKick(cpu, ball, 700); // misma fuerza que el jugador
+            cpuState.lockUntil = time + 220; // evita spam
+          }
+        }
+      }
+
+      // 4) Movimiento horizontal hacia targetX con deadzone/histeresis (anti-jitter)
+      let target = cpuState.targetX;
+      let dx = target - cpu.x;
+
+      const zone =
+        (Math.abs(dx) <= CPU.deadzone) ? 0 :
+          (Math.abs(dx) <= CPU.deadzone + CPU.hysteresis)
+            ? Math.sign(dx) * (CPU.deadzone + CPU.hysteresis)
+            : dx;
+
+      if (zone < -CPU.deadzone) {
         cpu.body.setVelocityX(-200);
-      } else if (ball.x > cpu.x + 20) {
+      } else if (zone > CPU.deadzone) {
         cpu.body.setVelocityX(200);
       } else {
         cpu.body.setVelocityX(0);
       }
 
-      // Saltar si la pelota está en el aire cerca
-      if (distanceToBall < 100 && ball.y < cpu.y - 50 && cpu.body.touching.down) {
-        cpu.body.setVelocityY(-450);
+      // 5) Ajuste contextual: si hay peligro y la pelota quedó a tu derecha, retrocede a cubrir
+      if (isDanger(ball, CPU.goalRightX, CPU.dangerRadius) && ball.x > cpu.x + 18) {
+        cpu.body.setVelocityX(200); // volver hacia el arco
       }
 
-      // Actualizar botín CPU
+      // 6) Actualizar botín del CPU
       bootCPU.x = cpu.x;
       bootCPU.y = cpu.y + 48;
+
     }
 
     return () => {
