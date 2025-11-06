@@ -65,33 +65,6 @@ cursor: pointer;
 transition: 0.3s ease;
 }
 
-/* Estilos individuales por color */
-.btnSingle {
-background-color: #ffdd00;
-color: #000;
-}
-.btnSingle:hover {
-transform: scale(1.05);
-background-color: #ffe750;
-}
-
-.btnMulti {
-background-color: #0077ff;
-color: #fff;
-}
-.btnMulti:hover {
-transform: scale(1.05);
-background-color: #3399ff;
-}
-
-.btnRules {
-background-color: #e0e0e0;
-color: #000;
-}
-.btnRules:hover {
-transform: scale(1.05);
-background-color: #ffffff;
-}
 
 /* ====== BARRA LATERAL ====== */
 .sidebar {
@@ -197,47 +170,6 @@ justify-content: center;
 gap: 15px;
 }
 
-.cancelBtn {
-padding: 10px 25px;
-border: none;
-border-radius: 10px;
-background-color: #e74c3c;
-color: #fff;
-font-weight: bold;
-cursor: pointer;
-transition: 0.3s ease;
-}
-
-.cancelBtn:hover {
-background-color: #c0392b;
-}
-
-.createBtn {
-padding: 10px 25px;
-border: none;
-border-radius: 10px;
-background-color: #27ae60;
-color: #fff;
-font-weight: bold;
-cursor: pointer;
-transition: 0.3s ease;
-}
-
-.createBtn:hover {
-background-color: #219150;
-}
-
-.joinBtn {
-padding: 10px 25px;
-border: none;
-border-radius: 10px;
-background-color: #0077ff;
-color: #fff;
-font-weight: bold;
-cursor: pointer;
-transition: 0.3s ease;
-margin: 2px;
-}
 
 /* ====== RESPONSIVE ====== */
 @media (max-width: 768px) {
