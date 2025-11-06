@@ -81,31 +81,6 @@
 }
 
 
-/* button chats usos */
-
-.buttonNuevoChat {
-    background-color: #443aff;
-    border-radius: 15%;
-    padding: 10px 10px;
-    font-size: 14px;
-    color: #ffffff;
-    cursor: pointer;
-    border-color: #443aff;
-}
-.buttonNuevoChat:hover {
-    background-color: #a498ff;
-}
-
-
-.buttonMandarMensaje {
-    margin-left: 8px;
-    padding: 8px 16px;
-    border: none;
-    background-color: #007bff;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-}
 
 
 .startButton {
@@ -123,4 +98,77 @@
 
 .startButton:hover {
     background-color: #ffb800;
+}
+
+.btnSingle {
+background-color: #ffdd00;
+color: #000;
+}
+.btnSingle:hover {
+transform: scale(1.05);
+background-color: #ffe750;
+}
+
+.btnMulti {
+background-color: #0077ff;
+color: #fff;
+}
+.btnMulti:hover {
+transform: scale(1.05);
+background-color: #3399ff;
+}
+
+.btnRules {
+background-color: #e0e0e0;
+color: #000;
+}
+.btnRules:hover {
+transform: scale(1.05);
+background-color: #ffffff;
+}
+
+.joinBtn {
+padding: 10px 25px;
+border: none;
+border-radius: 10px;
+background-color: #0077ff;
+color: #fff;
+font-weight: bold;
+cursor: pointer;
+transition: 0.3s ease;
+margin: 2px;
+}
+
+.joinBtn:hover {
+background-color: #005fcc;
+}
+
+.cancelBtn {
+padding: 10px 25px;
+border: none;
+border-radius: 10px;
+background-color: #e74c3c;
+color: #fff;
+font-weight: bold;
+cursor: pointer;
+transition: 0.3s ease;
+}
+
+.cancelBtn:hover {
+background-color: #c0392b;
+}
+
+.createBtn {
+padding: 10px 25px;
+border: none;
+border-radius: 10px;
+background-color: #27ae60;
+color: #fff;
+font-weight: bold;
+cursor: pointer;
+transition: 0.3s ease;
+}
+
+.createBtn:hover {
+background-color: #219150;
 }

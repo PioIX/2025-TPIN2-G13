@@ -147,7 +147,7 @@ export default function KabeGolHome() {
           jugadores={jugadores}
           userId={sessionStorage.getItem("userId")}
         />
-        <button onClick={() => socket.emit("test", { roomCode })}>Sala</button>
+        <Button onClick={() => socket.emit("test", { roomCode })} text = "Sala"/>
       </>
     );
   } else {
@@ -161,15 +161,9 @@ export default function KabeGolHome() {
 
         {/* Botones principales */}
         <div className={styles.buttonsContainer}>
-          <button className={styles.btnSingle} onClick={openSinglePopup}>
-            Un jugador
-          </button>
-          <button className={styles.btnMulti} onClick={openMultiPopup}>
-            Multijugador
-          </button>
-          <button className={styles.btnRules} onClick={openRulesPopup}>
-            Reglas
-          </button>
+          <Button use="single" onClick={openSinglePopup} text="Un jugador"/>
+          <Button use="multi" onClick={openMultiPopup} text="Multijugador"/>
+          <Button use="rules" onClick={openRulesPopup} text="Reglas"/>
         </div>
 
         {/* Barra lateral */}
@@ -213,12 +207,10 @@ export default function KabeGolHome() {
               <h2>Modo Un Jugador</h2>
             </div>
             <div className={styles.content}>
-              <button onClick={PlayWithBot} className={styles.joinBtn}>Jugar contra Bot</button>
+              <Button onClick={PlayWithBot} use="join" text="Jugar contra Bot"/>
             </div>
             <div className={styles.actions}>
-              <button onClick={closeSinglePopup} className={styles.cancelBtn}>
-                Cerrar
-              </button>
+              <Button onClick={closeSinglePopup} use="cancel" text= "Cerrar"/>
             </div>
           </div>
         </Popup>
@@ -236,13 +228,11 @@ export default function KabeGolHome() {
               <h2>Multijugador</h2>
             </div>
             <div className={styles.content}>
-              <button onClick={showCreateRoom} className={styles.joinBtn}> Crear una sala </button>
-              <button onClick={showJoinRoom} className={styles.joinBtn}> Unirse a una sala </button>
+              <Button onClick={showCreateRoom} use="join" text ="Crear una sala"/>
+              <Button onClick={showJoinRoom} use="join" text ="Unirse a una sala"/>
             </div>
             <div className={styles.actions}>
-              <button onClick={closeMultiPopup} className={styles.cancelBtn}>
-                Cerrar
-              </button>
+              <Button onClick={closeMultiPopup} use="cancel" text ="Cerrar"/>
             </div>
           </div>
         </Popup>
@@ -262,12 +252,8 @@ export default function KabeGolHome() {
               <p>Aquí puedes configurar y crear una nueva sala de juego.</p>
             </div>
             <div className={styles.actions}>
-              <button onClick={createRoom} className={styles.createBtn}>
-                Crear
-              </button>
-              <button onClick={closeCreateRoom} className={styles.cancelBtn}>
-                Cancelar
-              </button>
+              <Button onClick={createRoom} use ="create" text="Crear"/>
+              <Button onClick={closeCreateRoom} use ="cancel" text="Cerrar"/>
             </div>
           </div>
         </Popup>
@@ -291,12 +277,8 @@ export default function KabeGolHome() {
             <br></br>
             <br></br>
             <div className={styles.actions}>
-              <button onClick={joinRoom} className={styles.createBtn}>
-                Unirse
-              </button>
-              <button onClick={closeJoinRoom} className={styles.cancelBtn}>
-                Cancelar
-              </button>
+              <Button onClick={joinRoom} use = "create" text="Unirse"/>
+              <Button onClick={closeJoinRoom} use = "cancel" text="Cancelar"/>
             </div>
           </div>
         </Popup>
@@ -316,22 +298,24 @@ export default function KabeGolHome() {
             </div>
             <div className={styles.content}>
               <ul style={{ lineHeight: 1.6 }}>
-                <li><b>Partido:</b> 60s.</li>
-                <li><b>Gol:</b> la pelota cruza por completo la línea.</li>
-                <li><b>Reinicio:</b> tras gol, cuenta 3…2…1 y a jugar.</li>
-                <li><b>Acciones:</b> moverse, saltar y patear con el botín.</li>
-                <li><b>Pausa:</b> 1 por jugador (10s). Desconexión 15s de gracia.</li>
-                <li><b>Fair play:</b> sin exploits, sin macros.</li>
+                <p>
+                Partido: 60s.
+                <br></br>
+                Gol: la pelota cruza por completo la línea.
+                <br></br>
+                Reinicio:tras gol, cuenta 3…2…1 y a jugar.
+                <br></br>
+                Acciones: moverse, saltar y patear.
+                <br></br>
+                Fair play:sin exploits, sin macros. 
+                </p>
               </ul>
             </div>
             <div className={styles.actions} style={{ display: "flex", gap: 8 }}>
-              <button onClick={closeRulesPopup} className={styles.cancelBtn}>
-                Cerrar
-              </button>
+              <Button onClick={closeRulesPopup} use = "cancel" text = "Cerrar"/>
             </div>
           </div>
         </Popup>
-
       </div>
     );
   }

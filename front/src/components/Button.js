@@ -12,6 +12,12 @@ export default function Button(props) {
                         [styles.buttonLogin] : props.page === "login",
                         [styles.buttonRegister] : props.page === "register",
                         [styles.startButton] : props.page === "lobby",
+                        [styles.btnSingle] : props.use === "single",
+                        [styles.btnMulti] : props.use === "multi",
+                        [styles.btnRules] : props.use === "rules",
+                        [styles.joinBtn] : props.use === "join",
+                        [styles.cancelBtn] : props.use === "cancel",
+                        [styles.createBtn] : props.use === "create",
                     }
                 )
             } onClick={props.onClick}>{props.text}</button>
