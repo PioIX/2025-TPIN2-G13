@@ -7,7 +7,8 @@ export default function Input(props) {
             <label htmlFor={props.name}>{props.text}</label>
             <input 
                 value={props.value}
-                placeholder={props.placeholder} 
+                placeholder={props.placeholder}
+                accept={props.accept}
                 id={props.id} 
                 className={clsx(styles.input, {
                     [styles.inputLogin] : props.page === "login",
@@ -22,7 +23,7 @@ export default function Input(props) {
                 required={props.required} 
                 onKeyDown={props.onKeyDown}>
 
-                </input>
+            </input>
         </>
     )
 }
