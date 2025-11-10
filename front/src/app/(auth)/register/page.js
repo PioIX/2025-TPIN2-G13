@@ -49,8 +49,9 @@ export default function Register() {
     function savePassowrdSecure(event) {
         setConfirmContraseña(event.target.value)
     }
-    function saveImage(event) {
-        SetFotoPerfil(event.target.value)
+    function saveImage(e) {
+        const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+        SetFotoPerfil(file);
     }
 
     function UserExists() {
@@ -77,19 +78,20 @@ export default function Register() {
 
     function SignUp() { 
 
-        const userData = {
-            username: nombre,
-            password: contraseña,
-            image: fotoPerfil,
-        }
+        
 
         if (contraseña === confirmContraseña) {
+            const formData = new FormData(); //Se enviaran los datos en formData porque admite imagenes (o sea, binarios)
+            formData.set("nombre", nombre) 
+            formData.set("contrasena", contraseña)
+            if (fotoPerfil) formData.set("foto", fotoPerfil); // File real
+
+            console.log(formData.get("nombre"))
+            console.log(formData.get("contrasena"))
+
             fetch(url + "/register", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(userData)
+                body: formData
             })
             .then(response => response.json())
             .then(result => {
@@ -122,7 +124,7 @@ export default function Register() {
                 <Input text="Username" placeholder="Escriba su nombre de usuario" page="register" type="text" onChange={saveName} required={true}/>
                 <Input text="Contraseña" placeholder="Escriba su contraseña" page="register" type="password" onChange={savePassowrd} required={true}/>
                 <Input text="Confirmar Contraseña" placeholder="Escriba de vuelta su contraseña" page="register" type="password" onChange={savePassowrdSecure} required={true}/>
-                <Input text="Foto de perfil (enlace público)" placeholder="Agregue su foto de perfil" page="register" type="text" onChange={saveImage} required={false}/>
+                <Input text="Foto de perfil" placeholder="Agregue su foto de perfil" page="register" type="file" onChange={saveImage} required={false}/>
 
                 <Button onClick={UserExists} text="Sign Up" page="register"></Button>
                 <Link href={"./login"} className={styles.linkRegister}>¿Ya tenes cuenta? Login</Link>

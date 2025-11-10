@@ -5,6 +5,11 @@ var cors = require('cors');
 const session = require("express-session")
 const { realizarQuery } = require('./modulos/mysql');
 const { Socket } = require('socket.io');
+var multer = require('multer');
+
+
+const upload = multer({ storage: multer.memoryStorage() });
+
 
 
 var app = express(); //Inicializo express
@@ -116,23 +121,27 @@ app.get('/users', async function (req, res) {
     }
 })
 
-app.post('/register', async function (req, res) {
-    console.log(req.body)
-    try {
-        if (req.body.image == null) {
-            req.body.image = null
-        } else {
-            req.body.image = `'${req.body.image}'`
-        }
-        const respuesta = await realizarQuery(`
-            INSERT INTO Users (username, password, image)    
-            VALUES ('${req.body.username}', '${req.body.password}', ${req.body.image})
-        `)
-        res.send({res: true, message: "Usuario Creado Correctamente"})
-    } catch (error) {
-        console.log(error)
-    }
-})
+app.post("/register", upload.single("foto"), async (req, res) => {
+  try {
+    console.log("BODY:", req.body);     // debería tener nombre, contrasena
+    console.log("FILE:", req.file);     // debería existir si se envió imagen
+    console.log("FIELDS:", req.files);  // undefined en single()
+
+    const nombre = req.body?.nombre ?? null;
+    const contrasena = req.body?.contrasena ?? null;
+    const foto = req.file ? req.file.buffer : null;
+
+    await realizarQuery(
+      "INSERT INTO Users (username, password, image) VALUES (?, ?, ?)",
+      [nombre, contrasena, foto]
+    );
+
+    res.send({ res: true, message: "Usuario Creado Correctamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ res: false, message: "Error al registrar" });
+  }
+});
 
 app.post('/findUser', async function (req, res) {
     try {
@@ -169,6 +178,44 @@ app.post('/findUserId', async function (req, res) {
         console.log(error)
     }
 })
+
+app.get("/traerFotoUsuario", async (req, res) => {
+  try {
+    const rows = await realizarQuery(
+      "SELECT image FROM Users WHERE id_user = ?",
+      [req.query.id]
+    );
+    res.send({ foto: rows }); // mismo formato que ya tenés
+  } catch (error) {
+    res.status(500).send({ mensaje: "Tuviste un error", error: error.message });
+  }
+});
+
+// GET /users/:id/image  → devuelve bytes con Content-Type correcto
+app.get("/users/:id/image", async (req, res) => {
+  try {
+    const rows = await realizarQuery(
+      "SELECT image FROM Users WHERE id_user = ?",
+      [req.params.id]
+    );
+
+    if (!rows.length || !rows[0].image) {
+      // Si no hay imagen, devolvé una por defecto (opción A)…
+      // res.redirect("/profile.jpg");
+
+      // …o bien 404 y que el front haga fallback (opción B):
+      return res.status(404).send("No image");
+    }
+
+    res.set("Content-Type", "image/png");
+    // Cache cortita para que no quede pegada si el user cambia la foto
+    res.set("Cache-Control", "private, max-age=60");
+    return res.send(rows[0].image); // Buffer
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send("Error");
+  }
+});
 
 app.put('/putOnline', async function (req, res) {
     try {
@@ -299,6 +346,11 @@ io.on("connection", (socket) => {
 
     console.log("🟢 Cliente conectado:", socket.id);
 
+    socket.on("clientInfo", (data) => {
+        console.log("Client base URL received:", data.baseUrl);
+        socket.clientBaseUrl = data.baseUrl;
+    });
+
     // --- Crear sala ---
     socket.on("createRoom", async (data) => {
     try {
@@ -335,7 +387,6 @@ io.on("connection", (socket) => {
             SELECT 
                 u.id_user, 
                 u.username, 
-                u.image,
                 CASE WHEN u.id_user = r.id_host THEN 1 ELSE 0 END AS esHost
             FROM RoomPlayers rp
             JOIN Users u ON rp.id_user = u.id_user
@@ -344,8 +395,15 @@ io.on("connection", (socket) => {
             ORDER BY esHost DESC, u.id_user ASC
         `);
 
+        // Construí un campo imageUrl para cada jugador
+        const BASE = socket.clientBaseUrl; // viene del front directo
+
+        const jugadoresConFoto = jugadores.map(j => ({
+            ...j,
+            imageUrl: `${BASE}/users/${j.id_user}/image`
+        }));
         // Enviar a todos (por ahora solo el host conectado)
-        io.to(code_room).emit("updatePlayers", jugadores);
+        io.to(code_room).emit("updatePlayers", jugadoresConFoto);
 
 
     } catch (err) {
@@ -399,7 +457,6 @@ io.on("connection", (socket) => {
             SELECT 
                 u.id_user, 
                 u.username, 
-                u.image,
                 CASE WHEN u.id_user = r.id_host THEN 1 ELSE 0 END AS esHost
             FROM RoomPlayers rp
             JOIN Users u ON rp.id_user = u.id_user
@@ -408,8 +465,16 @@ io.on("connection", (socket) => {
             ORDER BY esHost DESC, u.id_user ASC
         `);
 
+        // Construí un campo imageUrl para cada jugador
+        const BASE = socket.clientBaseUrl; // viene del front directo
+
+        const jugadoresConFoto = jugadores.map(j => ({
+            ...j,
+            imageUrl: `${BASE}/users/${j.id_user}/image`
+        }));
+
         // Notificar a todos en la sala con la lista completa
-        io.to(code_room).emit("updatePlayers", jugadores);
+        io.to(code_room).emit("updatePlayers", jugadoresConFoto);
 
         // Confirmar al que se acaba de unir
         socket.emit("joinedRoom", { code_room });

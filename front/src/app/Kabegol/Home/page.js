@@ -20,6 +20,8 @@ export default function KabeGolHome() {
   const [inLobby, setInLobby] = useState(false);
   const [roomCode, setRoomCode] = useState(null);
 
+  const [foto, setfoto] = useState("")
+
   useEffect(() => {
     if (!socket) return;
 
@@ -35,7 +37,7 @@ export default function KabeGolHome() {
 
     socket.on("gameStart", (data) => {
       console.log("🚀 Recibido gameStart con code:", data.code);
-      router.push(`/Kabegol/Game?code=${data.code}`);
+      router.push(`/Kabegol/Game?code=${data.code}`, jugadores);
     });
 
     return () => {
@@ -108,6 +110,18 @@ export default function KabeGolHome() {
       .then(result => {
         setUserLoggued(result); // Guarda el resultado en el estado
         console.log(result);
+
+        fetch(url + "/traerFotoUsuario?id=" + sessionStorage.getItem("userId"))
+        .then(r => r.json())
+        .then(json => {
+          const raw = json.foto?.[0]?.image?.data;
+          if (!raw) return;
+
+          const u8 = new Uint8Array(raw);
+          const blob = new Blob([u8], { type: "image/*" }); // si sabés el mime: "image/jpeg" o "image/png"
+          const objectUrl = URL.createObjectURL(blob);
+          setfoto(objectUrl);
+        });
       });
   }, []);
 
@@ -146,8 +160,8 @@ export default function KabeGolHome() {
           code={roomCode}
           jugadores={jugadores}
           userId={sessionStorage.getItem("userId")}
+          foto = {foto}
         />
-        <Button onClick={() => socket.emit("test", { roomCode })} text = "Sala"/>
       </>
     );
   } else {
@@ -175,7 +189,7 @@ export default function KabeGolHome() {
         >
           <div className={styles.sidebarContent}>
             <img
-              src={userLoggued[0]?.image}
+              src={foto || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
               alt="Perfil"
               className={styles.profilePic}
             />

@@ -557,7 +557,7 @@ export default function GameSingle({ userId, imageProfile }) {
       });
     }
 
-    function performKick(player, ball, force = 500) {
+    function performKick(player, ball, force = 300) {
       if (!gameStarted || gameOver) return;
 
       const distance = Phaser.Math.Distance.Between(player.x, player.y, ball.x, ball.y);

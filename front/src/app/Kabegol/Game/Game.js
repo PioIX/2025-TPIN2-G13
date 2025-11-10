@@ -159,8 +159,8 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
       arcoRightImage.setFlipX(true);
       arcoRightImage.setDepth(0);
 
-      goalLeft = scene.add.rectangle(20, 590, 40, 160, 0xff0000, 0);
-      goalRight = scene.add.rectangle(1260, 590, 40, 160, 0x0000ff, 0);
+      goalLeft = scene.add.rectangle(10, 550, 40, 160, 0xff0000, 0);
+      goalRight = scene.add.rectangle(1270, 550, 40, 160, 0x0000ff, 0);
       scene.physics.add.existing(goalLeft, true);
       scene.physics.add.existing(goalRight, true);
 

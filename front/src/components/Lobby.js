@@ -1,9 +1,9 @@
 "use client";
 import Button from "./Button";
-import styles from "./lobby.module.css";
+import styles from "./Lobby.module.css";
 import { useSocket } from "@/hooks/useSocket";
 
-export default function Lobby({ code, jugadores, userId }) {
+export default function Lobby({ code, jugadores, userId, foto }) {
 
   const {socket, isConnected} = useSocket();
   
@@ -18,6 +18,7 @@ export default function Lobby({ code, jugadores, userId }) {
   console.log("¿Soy host?", soyHost);
 
   function onStartGame() {
+    sessionStorage.setItem("jugadores", JSON.stringify(jugadores));
     console.log("🚀 Iniciando juego...");
     socket.emit("startGame", {code});
   }
@@ -32,7 +33,7 @@ export default function Lobby({ code, jugadores, userId }) {
       <div className={styles.players}>
         {jugadores.map((jug) => (
           <div key={jug.id_user} className={styles.playerCard}>
-            <img src={jug.image || "/profile.jpg"} alt={jug.username} />
+            <img src={jug.imageUrl || "https://cdn-icons-png.flaticon.com/512/847/847969.png"} alt={jug.username} />
             <h3 className={styles.playerName}>{jug.username}</h3>
 
             {/* Si es el host */}

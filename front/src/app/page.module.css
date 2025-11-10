@@ -29,6 +29,79 @@
   }
 }
 
+/* --- ESTILOS PARA EL VIDEO DE INTRO --- */
+
+/* Contenedor del video: Ocupa toda la pantalla, fondo negro */
+.videoContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* El reproductor de video */
+.videoPlayer {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que el video cubra toda la pantalla sin deformarse */
+}
+
+.fadingScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: #000;
+  z-index: 9998;
+  opacity: 0; /* Empieza invisible */
+}
+
+.fadingScreen.screenFadeIn {
+  /* Duración del fade-in de la pantalla negra */
+  animation: fadeInScreen 0.5s ease-out forwards;
+}
+
+.fadingScreen.screenFadeOut {
+  /* Duración del fade-out de la pantalla negra */
+  animation: fadeOutScreen 0.7s ease-in forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Animación para el FADE-OUT DEL VIDEO */
+@keyframes fadeOutVideo {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.videoFadeOut {
+  /* Duración del fade-out del video */
+  animation: fadeOutVideo 0.5s ease-out forwards; 
+}
+
+
+/* Animaciones para la PANTALLA NEGRA */
+@keyframes fadeInScreen {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOutScreen {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* --- FIN DE ESTILOS DE INTRO --- */
+
 .main {
   display: flex;
   flex-direction: column;
@@ -167,6 +240,105 @@ a.secondary {
     filter: invert();
   }
 }
+
+/* --- NUEVOS ESTILOS ÉPICOS PARA LA PÁGINA DE INICIO --- */
+/* --- ESTILOS PARA EL VIDEO DE INTRO --- */
+
+/* Contenedor del video: Ocupa toda la pantalla, fondo negro */
+.videoContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* El reproductor de video */
+.videoPlayer {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que el video cubra toda la pantalla sin deformarse */
+}
+
+/* Pantalla de transición en negro */
+.fadingScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: #000;
+  z-index: 9998;
+  opacity: 0; /* Empieza invisible */
+}
+
+.fadingScreen.screenFadeIn {
+  /* Duración del fade-in de la pantalla negra */
+  animation: fadeInScreen 0.5s ease-out forwards;
+}
+
+.fadingScreen.screenFadeOut {
+  /* Duración del fade-out de la pantalla negra */
+  animation: fadeOutScreen 0.7s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Animación para el FADE-OUT DEL VIDEO */
+@keyframes fadeOutVideo {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.videoFadeOutOnEnd {
+  /* Cuando termine (onEnded) el componente padre le cambiará el estado,
+     pero podemos dejar una transición suave por si acaso */
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+
+
+/* Animaciones para la PANTALLA NEGRA */
+@keyframes fadeInScreen {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOutScreen {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Animación de fundido de entrada */
+@keyframes componentFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Animación de fundido de salida */
+@keyframes componentFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Clase para el fundido de entrada del contenido */
+.componentFadeIn {
+  animation: componentFadeIn 0.7s ease-in forwards;
+}
+
+/* Clase para el fundido de salida del video */
+.componentFadeOut {
+  animation: componentFadeOut 0.5s ease-out forwards;
+}
+/* --- FIN DE ESTILOS DE INTRO --- */
 
 /* Contenedor principal - Fondo más dramático */
 .homecontainer {

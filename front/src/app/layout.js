@@ -16,7 +16,7 @@ export const metadata = {
   title: "KabeGol",
   description: "",
   icons: {
-    icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRVW6PdD-b8MJUWJlTe3fmc9ucfZTTdOKNDA&s"
+    icon: "/backgrounds/Logo.png"
   }
 };
 

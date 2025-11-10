@@ -13,6 +13,8 @@ color: white;
 position: absolute;
 inset: 0;
 background-image: url(/backgrounds/fondoInicio.png);
+transform: scale(1.25);
+transform-origin: center; /* opcional, mantiene el centro */
 background-size: cover;
 background-position: center;
 filter: brightness(0.8);
