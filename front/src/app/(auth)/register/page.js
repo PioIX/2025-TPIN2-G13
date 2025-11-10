@@ -16,6 +16,7 @@ export default function Register() {
     const [confirmContraseña, setConfirmContraseña] = useState("")
     const [fotoPerfil, SetFotoPerfil] = useState(null)
     const [usuario, setUsuario] = useState([])
+    const [preview, setPreview] = useState(null)
 
     const router = useRouter()
 
@@ -49,10 +50,16 @@ export default function Register() {
     function savePassowrdSecure(event) {
         setConfirmContraseña(event.target.value)
     }
-    function saveImage(e) {
-        const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-        SetFotoPerfil(file);
-    }
+      function handleChangeImage(event) {
+        let file = event.target.files[0]
+        SetFotoPerfil(file)
+        setPreview(URL.createObjectURL(file))
+        }
+
+    function removeImageAndPreview() {
+        SetFotoPerfil("")
+        setPreview(null)
+    }  
 
     function UserExists() {
 
@@ -124,8 +131,18 @@ export default function Register() {
                 <Input text="Username" placeholder="Escriba su nombre de usuario" page="register" type="text" onChange={saveName} required={true}/>
                 <Input text="Contraseña" placeholder="Escriba su contraseña" page="register" type="password" onChange={savePassowrd} required={true}/>
                 <Input text="Confirmar Contraseña" placeholder="Escriba de vuelta su contraseña" page="register" type="password" onChange={savePassowrdSecure} required={true}/>
-                <Input text="Foto de perfil" placeholder="Agregue su foto de perfil" page="register" type="file" onChange={saveImage} required={false}/>
-
+                {fotoPerfil ? <><img src={preview} alt="Cargando..." width={450} height={450} onClick={removeImageAndPreview}></img></> :
+                  <>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      page="register"
+                      text="Foto de perfil"
+                      required={false}
+                      onChange={handleChangeImage}></Input> 
+                  </>
+                }
+                
                 <Button onClick={UserExists} text="Sign Up" page="register"></Button>
                 <Link href={"./login"} className={styles.linkRegister}>¿Ya tenes cuenta? Login</Link>
             </div>

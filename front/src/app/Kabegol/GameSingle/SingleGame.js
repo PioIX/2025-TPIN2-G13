@@ -29,7 +29,7 @@ export default function GameSingle({ userId, imageProfile }) {
     const config = {
       type: Phaser.AUTO,
       width: 1280,
-      height: 720,
+      height: 700,
       physics: {
         default: "arcade",
         arcade: {
