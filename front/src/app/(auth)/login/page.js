@@ -60,7 +60,21 @@ export default function Login() {
                             .then(data => {
                                 sessionStorage.setItem("userId", data[0].id_user); // guardar userId 
                                 console.log("userId guardado en sessionStorage:", data[0].id_user);
-                                router.replace("/Kabegol/Home") // redirigir a Home
+                                fetch(url + "/findUserById", {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ id_user: sessionStorage.getItem("userId") })
+                                })
+                                .then(response => response.json())
+                                .then(userData => {
+                                    console.log(userData)
+                                    if (userData[0].admin === 1) {
+                                        router.replace("/Kabegol/admin") // admin
+                                    } else {
+                                        router.replace("/Kabegol/Home") // redirigir a Home
+                                    }
+                                })
+                                
                             })
                     } else {
                         showModal("Error", "Contraseña o Usuario Incorrecto")
