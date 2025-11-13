@@ -146,46 +146,80 @@ border-radius: 50%;
 }
 
 /* ====== POPUPS ====== */
+/* Modal principal */
 .modal {
-background-color: #fff;
-border-radius: 15px;
-padding: 25px;
-width: 400px;
-max-width: 90%;
-color: #000;
-box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-text-align: center;
+  background: linear-gradient(135deg, #ffffff 0%, #c6eaff 100%); /* Gradiente morado y azul oscuro */
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: 450px;
+  max-width: 90%;
+  color: #000000; /* Color suave de texto (lavanda claro) */
+  box-shadow: 0 20px 60px rgba(40, 40, 40, 0.5);
+  border: 5px solid #2b63dd;
+  text-align: center;
+  position: relative;
 }
 
+.modal::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(135deg, #000000 0%, #002050 100%);
+  border-radius: 20px;
+  z-index: -1;
+}
+
+/* Header */
 .header {
-margin-bottom: 15px;
+  margin-bottom: 2rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 3px solid #000000;
 }
 
+.header h2 {
+  color: #000000; /* Color dorado suave */
+  font-size: 2rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.3); /* Sombra suave para el título */
+}
+
+/* Contenido */
 .content {
-font-size: 16px;
-margin-bottom: 25px;
+  font-size: 1rem;
+  color: #0035c7; /* Color gris suave para el contenido */
+  margin-bottom: 1.5rem;
+  text-align: left; /* Alineamos el texto a la izquierda */
+  line-height: 1.8;
+  max-height: 200px;
+  overflow-y: auto; /* Añadimos scroll si el contenido es largo */
 }
 
+.content p {
+  margin: 0.8rem 0; /* Espaciado entre las líneas */
+}
+
+/* Acciones (botones) */
 .actions {
-display: flex;
-justify-content: center;
-gap: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
 }
 
-
-/* ====== RESPONSIVE ====== */
-@media (max-width: 768px) {
-.title {
-font-size: 50px;
+/* Ajustes generales del contenido y estilo */
+.content ul {
+  list-style-type: none;
+  padding-left: 0;
 }
 
-.buttonsContainer button {
-width: 200px;
-height: 60px;
-font-size: 18px;
-}
-
-.sidebarOpen {
-width: 200px;
-}
+.content ul li {
+  font-size: 1.1rem;
+  color: #3685b9;
+  line-height: 1.8;
 }

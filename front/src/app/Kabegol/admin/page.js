@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import styles from "./admin.module.css"
 import { useConection } from "@/hooks/useConection"
+import Input from "@/components/Input"
 
 export default function Admin() {
     const [adminData, setAdminData] = useState(null)
@@ -11,7 +12,8 @@ export default function Admin() {
     const [searchTerm, setSearchTerm] = useState("")
     const [currentIndex, setCurrentIndex] = useState(0)
     const {url} = useConection()
-    
+    const [fotoPerfil, SetFotoPerfil] = useState(null)
+
     // Modal states
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
@@ -21,7 +23,7 @@ export default function Admin() {
     const [formData, setFormData] = useState({
         username: "",
         password: "",
-        image: "",
+        image: fotoPerfil,
         admin: false
     })
 
@@ -29,12 +31,15 @@ export default function Admin() {
         const userId = sessionStorage.getItem("userId")
         
         // Obtener info del admin
-        fetch(url + `/findUserById?id=${userId}`)
+        fetch(url + `/findUserById`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({id_user: userId})
+        })
             .then(res => res.json())
             .then(data => {
                 setAdminData(data[0])
             })
-            .catch(err => console.error(err))
         
         // Cargar todos los usuarios
         loadUsers()
@@ -54,17 +59,16 @@ export default function Admin() {
     }, [searchTerm, users])
 
     const loadUsers = () => {
-        fetch(url + "/getAllUsers")
+        fetch(url + "/users")
             .then(res => res.json())
             .then(data => {
                 setUsers(data)
                 setFilteredUsers(data)
             })
-            .catch(err => console.error(err))
     }
 
     const handleCreate = () => {
-        fetch("http://localhost:3001/createUser", {
+        fetch(url + "/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)
@@ -76,11 +80,10 @@ export default function Admin() {
                 setFormData({ username: "", password: "", image: "", admin: false })
                 loadUsers()
             })
-            .catch(err => console.error(err))
     }
 
     const handleEdit = () => {
-        fetch("http://localhost:3001/editUser", {
+        fetch(url + "/editUser", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -101,7 +104,7 @@ export default function Admin() {
 
     const handleDelete = (userId) => {
         if (confirm("¿Estás seguro de eliminar este usuario?")) {
-            fetch(`http://localhost:3001/deleteUser?id=${userId}`, {
+            fetch(url + `/deleteUser?id=${userId}`, {
                 method: "DELETE"
             })
                 .then(res => res.json())
@@ -114,7 +117,7 @@ export default function Admin() {
     }
 
     const handleToggleAdmin = (userId, currentAdminStatus) => {
-        fetch("http://localhost:3001/toggleAdmin", {
+        fetch(url + "/toggleAdmin", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -140,6 +143,13 @@ export default function Admin() {
         })
         setShowEditModal(true)
     }
+
+     function handleChangeImage(event) {
+        let file = event.target.files[0]
+        SetFotoPerfil(file)
+        setPreview(URL.createObjectURL(file))
+    }
+
 
     const nextUser = () => {
         if (currentIndex < filteredUsers.length - 1) {
@@ -258,12 +268,14 @@ export default function Admin() {
                             value={formData.password}
                             onChange={(e) => setFormData({...formData, password: e.target.value})}
                         />
-                        <input 
-                            type="text"
-                            placeholder="URL Imagen"
-                            value={formData.image}
-                            onChange={(e) => setFormData({...formData, image: e.target.value})}
-                        />
+                        <Input
+                            type="file"
+                            accept="image/*"
+                            page="register"
+                            text="Foto de perfil"
+                            required={false}
+                            onChange={handleChangeImage}
+                        /> 
                         <label>
                             <input 
                                 type="checkbox"

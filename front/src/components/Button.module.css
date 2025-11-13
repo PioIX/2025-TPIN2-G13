@@ -127,48 +127,87 @@ transform: scale(1.05);
 background-color: #ffffff;
 }
 
-.joinBtn {
-padding: 10px 25px;
-border: none;
-border-radius: 10px;
-background-color: #0077ff;
-color: #fff;
-font-weight: bold;
-cursor: pointer;
-transition: 0.3s ease;
-margin: 2px;
-}
-
-.joinBtn:hover {
-background-color: #005fcc;
-}
-
+/* Botón de Cancelar */
 .cancelBtn {
-padding: 10px 25px;
-border: none;
-border-radius: 10px;
-background-color: #e74c3c;
-color: #fff;
-font-weight: bold;
-cursor: pointer;
-transition: 0.3s ease;
+  padding: 1rem 2.2rem;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #FF4C4C 0%, #D13B3B 100%); /* Rojo épico */
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 0 #9E2B2B, 0 7px 25px rgba(255, 79, 79, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 1;
+  font-size: 1.05rem;
 }
 
 .cancelBtn:hover {
-background-color: #c0392b;
+  background: linear-gradient(135deg, #FF5E5E 0%, #D13B3B 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 0 #9E2B2B, 0 10px 30px rgba(255, 79, 79, 0.5);
 }
 
+.cancelBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 3px 0 #9E2B2B, 0 4px 10px rgba(255, 79, 79, 0.4);
+}
+
+/* Botón Crear */
 .createBtn {
-padding: 10px 25px;
-border: none;
-border-radius: 10px;
-background-color: #27ae60;
-color: #fff;
-font-weight: bold;
-cursor: pointer;
-transition: 0.3s ease;
+  padding: 1rem 2.2rem;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #00BFAE 0%, #007D7F 100%); /* Verde agua épico */
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 0 #008B8B, 0 7px 20px rgba(0, 191, 174, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 1;
+  font-size: 1.05rem;
 }
 
 .createBtn:hover {
-background-color: #219150;
+  background: linear-gradient(135deg, #00D1A7 0%, #00BFAE 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 0 #008B8B, 0 10px 25px rgba(0, 191, 174, 0.5);
+}
+
+.createBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 3px 0 #008B8B, 0 4px 10px rgba(0, 191, 174, 0.4);
+}
+
+/* Botón Unirse */
+.joinBtn {
+  padding: 1.1rem 2rem;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #6A8EFC 0%, #3B6CFF 100%); /* Azul eléctrico */
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 0 #3161C7, 0 7px 20px rgba(106, 143, 252, 0.4);
+  margin: 0.6rem 0;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 1.15rem;
+}
+
+.joinBtn:hover {
+  background: linear-gradient(135deg, #7B9DFF 0%, #6A8EFC 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 0 #3161C7, 0 10px 25px rgba(106, 143, 252, 0.5);
+}
+
+.joinBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 3px 0 #3161C7, 0 4px 10px rgba(106, 143, 252, 0.4);
 }
