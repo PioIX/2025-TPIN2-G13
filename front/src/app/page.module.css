@@ -80,7 +80,7 @@
 /* Animación para el FADE-OUT DEL VIDEO */
 @keyframes fadeOutVideo {
   from { opacity: 1; }
-  to { opacity: 0; }
+  to { opacity: 0; } 
 }
 
 .videoFadeOut {
@@ -277,67 +277,15 @@ a.secondary {
   opacity: 0; /* Empieza invisible */
 }
 
-.fadingScreen.screenFadeIn {
-  /* Duración del fade-in de la pantalla negra */
-  animation: fadeInScreen 0.5s ease-out forwards;
-}
-
-.fadingScreen.screenFadeOut {
-  /* Duración del fade-out de la pantalla negra */
-  animation: fadeOutScreen 0.7s ease-in forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Animación para el FADE-OUT DEL VIDEO */
-@keyframes fadeOutVideo {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-.videoFadeOutOnEnd {
-  /* Cuando termine (onEnded) el componente padre le cambiará el estado,
-     pero podemos dejar una transición suave por si acaso */
-  opacity: 1;
-  transition: opacity 0.5s ease-out;
-}
 
 
-/* Animaciones para la PANTALLA NEGRA */
-@keyframes fadeInScreen {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
 
-@keyframes fadeOutScreen {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
 
-/* Animación de fundido de entrada */
-@keyframes componentFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
 
-/* Animación de fundido de salida */
-@keyframes componentFadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
 
-/* Clase para el fundido de entrada del contenido */
-.componentFadeIn {
-  animation: componentFadeIn 0.7s ease-in forwards;
-}
 
-/* Clase para el fundido de salida del video */
-.componentFadeOut {
-  animation: componentFadeOut 0.5s ease-out forwards;
-}
+
+
 /* --- FIN DE ESTILOS DE INTRO --- */
 
 /* Contenedor principal - Fondo más dramático */
@@ -370,19 +318,7 @@ a.secondary {
   position: relative; /* Para posibles elementos absolutos */
 }
 
-/* Efecto de partículas o destellos de fondo (opcional, si quieres añadir una capa de detalle) */
-.homecontainer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: radial-gradient(circle at center, rgba(var(--color-secondary-blue), 0.1) 0%, transparent 70%); /* Un brillo sutil */
-  background-size: 150% 150%;
-  animation: bgPulse 10s infinite alternate ease-in-out; /* Animación de fondo sutil */
-  z-index: 0; /* Asegurarse de que esté detrás del contenido */
-}
+
 
 @keyframes bgPulse {
   0% { background-position: 0% 0%; }
@@ -504,10 +440,6 @@ a.secondary {
   opacity: 0;
   animation: fadeInSlideUp 0.8s ease-out forwards; /* Aumenté la duración a 0.8s */
 }
-
-.delay-1 { animation-delay: 0.3s; } /* Ajusté los delays */
-.delay-2 { animation-delay: 0.6s; }
-.delay-3 { animation-delay: 0.9s; }
 
 /* Botón */
 
