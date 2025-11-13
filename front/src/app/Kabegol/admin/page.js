@@ -12,20 +12,17 @@ export default function Admin() {
     const [searchTerm, setSearchTerm] = useState("")
     const [currentIndex, setCurrentIndex] = useState(0)
     const {url} = useConection()
+
     const [fotoPerfil, SetFotoPerfil] = useState(null)
+    const [nombre, SetNombre] = useState("")
+    const [contraseña, SetContraseña] = useState("")
+    const [admin, setAdmin] = useState(false)
 
     // Modal states
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
     const [selectedUser, setSelectedUser] = useState(null)
     
-    // Form data
-    const [formData, setFormData] = useState({
-        username: "",
-        password: "",
-        image: fotoPerfil,
-        admin: false
-    })
 
     
         
@@ -103,17 +100,29 @@ export default function Admin() {
     }
 
     const handleCreate = () => {
-        fetch(url + "/register", {
+        const formData = new FormData();
+        formData.set("nombre", nombre)
+        formData.set("contrasena", contraseña)
+        formData.set("admin", admin ? "true" : "false")  // Convertir a string
+        if (fotoPerfil) formData.set("foto", fotoPerfil);
+    
+        fetch(url + "/createUserAdmin", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData)
+            body: formData
         })
             .then(res => res.json())
             .then(data => {
                 alert("Usuario creado exitosamente")
                 setShowCreateModal(false)
-                setFormData({ username: "", password: "", image: "", admin: false })
-                loadUsers()
+                SetNombre("")
+                SetContraseña("")
+                SetFotoPerfil(null)
+                setAdmin(false)
+                loadUsers() 
+            })
+            .catch(err => {
+                console.error(err)
+                alert("Error al crear usuario")
             })
     }
 
@@ -139,15 +148,16 @@ export default function Admin() {
 
     const handleDelete = (userId) => {
         if (confirm("¿Estás seguro de eliminar este usuario?")) {
-            fetch(url + `/deleteUser?id=${userId}`, {
-                method: "DELETE"
+            fetch(url + "/deleteUser", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_user: userId })
             })
                 .then(res => res.json())
                 .then(data => {
                     alert("Usuario eliminado")
                     loadUsers()
                 })
-                .catch(err => console.error(err))
         }
     }
 
@@ -293,14 +303,12 @@ export default function Admin() {
                         <input 
                             type="text"
                             placeholder="Username"
-                            value={formData.username}
-                            onChange={(e) => setFormData({...formData, username: e.target.value})}
+                            onChange={(e) => SetNombre(e.target.value)}
                         />
                         <input 
                             type="password"
                             placeholder="Password"
-                            value={formData.password}
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
+                            onChange={(e) => SetContraseña(e.target.value)}
                         />
                         <Input
                             type="file"
@@ -313,8 +321,7 @@ export default function Admin() {
                         <label>
                             <input 
                                 type="checkbox"
-                                checked={formData.admin}
-                                onChange={(e) => setFormData({...formData, admin: e.target.checked})}
+                                onChange={(e) => setAdmin(e.target.checked)}
                             />
                             Es Admin
                         </label>
@@ -329,40 +336,40 @@ export default function Admin() {
             {/* Modal Editar */}
             {showEditModal && (
                 <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <h2>Editar Usuario</h2>
+                <div className={styles.modalContent}>
+                    <h2>Crear Usuario</h2>
+                    <input 
+                        type="text"
+                        placeholder="Username"
+                        onChange={(e) => SetNombre(e.target.value)}
+                    />
+                    <input 
+                        type="password"
+                        placeholder="Password"
+                        onChange={(e) => SetContraseña(e.target.value)}
+                    />
+                    <Input
+                        type="file"
+                        accept="image/*"
+                        page="register"
+                        text="Foto de perfil"
+                        required={false}
+                        onChange={handleChangeImage}
+                    /> 
+                    <label>
                         <input 
-                            type="text"
-                            placeholder="Username"
-                            value={formData.username}
-                            onChange={(e) => setFormData({...formData, username: e.target.value})}
+                            type="checkbox"
+                            checked={formData.admin}
+                            onChange={(e) => setFormData(e.target.checked)}
                         />
-                        <input 
-                            type="password"
-                            placeholder="Nueva Password (dejar vacío para no cambiar)"
-                            value={formData.password}
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
-                        />
-                        <input 
-                            type="text"
-                            placeholder="URL Imagen"
-                            value={formData.image}
-                            onChange={(e) => setFormData({...formData, image: e.target.value})}
-                        />
-                        <label>
-                            <input 
-                                type="checkbox"
-                                checked={formData.admin}
-                                onChange={(e) => setFormData({...formData, admin: e.target.checked})}
-                            />
-                            Es Admin
-                        </label>
-                        <div className={styles.modalActions}>
-                            <button onClick={handleEdit}>Guardar</button>
-                            <button onClick={() => setShowEditModal(false)}>Cancelar</button>
-                        </div>
+                        Es Admin
+                    </label>
+                    <div className={styles.modalActions}>
+                        <button onClick={handleCreate}>guardar</button>
+                        <button onClick={() => setShowCreateModal(false)}>Cancelar</button>
                     </div>
                 </div>
+            </div>
             )}
         </div>
     )

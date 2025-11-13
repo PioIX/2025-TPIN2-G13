@@ -147,6 +147,57 @@ app.post("/register", upload.single("foto"), async (req, res) => {
   }
 });
 
+app.post("/createUserAdmin", upload.single("foto"), async (req, res) => {
+    try {
+      // TODO: Verificar que quien hace la petición sea admin
+      
+      const nombre = req.body?.nombre ?? null;
+      const contrasena = req.body?.contrasena ?? null;
+      const admin = req.body?.admin === "true" ? 1 : 0;
+      const foto = req.file ? req.file.buffer : null;
+  
+      await realizarQuery(
+        "INSERT INTO Users (username, password, image, admin) VALUES (?, ?, ?, ?)",
+        [nombre, contrasena, foto, admin]
+      );
+  
+      res.send({ res: true, message: "Usuario Creado Correctamente" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ res: false, message: "Error al crear usuario" });
+    }
+  });
+
+  app.delete('/borrarUser/:id', (req, res) => {
+    const query = 'DELETE FROM Users WHERE id_user = ?';
+    pool.query(query, [req.params.id], (error, result) => {
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+        res.json({ message: 'Usuario eliminado exitosamente' });
+    });
+
+});
+
+app.delete("/deleteUser", async (req, res) => {
+    const result1 = await realizarQuery(`
+        DELETE FROM Messages WHERE id_user = ${req.body.id_user}    
+    `)
+    const result2 = await realizarQuery(`
+        DELETE FROM UsersxUsers WHERE id_user = ${req.body.id_user}       
+    `)
+    const result3 = await realizarQuery(`
+        DELETE FROM RoomPlayers WHERE id_user = ${req.body.id_user}       
+    `)
+    const result4 = await realizarQuery(`
+        DELETE FROM Rooms WHERE id_ganador = ${req.body.id_user}
+    `)
+    const result5 = await realizarQuery(`
+        DELETE FROM Users WHERE id_user = ${req.body.id_user}       
+    `)
+    res.send({ message: "Usuario eliminado exitosamente"})
+});
+
 app.post('/findUser', async function (req, res) {
     try {
         const respuesta = await realizarQuery(`

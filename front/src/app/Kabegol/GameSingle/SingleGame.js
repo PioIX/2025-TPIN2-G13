@@ -18,7 +18,7 @@ export default function GameSingle({ userId, imageProfile }) {
     let score1 = 0, scoreCPU = 0;
     let scoreText, timerText, countdownText;
     let countdown = 3
-    let ground, goalLeft, goalRight;
+    let ground, ground2,  goalLeft, goalRight;
     let gameTime = 60;
     let gameStarted = false;
     let gameOver = false;
@@ -167,6 +167,9 @@ export default function GameSingle({ userId, imageProfile }) {
       // Suelo
       ground = scene.add.rectangle(640, 643, 1280, 10, 0x000000, 0);
       scene.physics.add.existing(ground, true);
+
+      ground2 = scene.add.rectangle(640, 700, 1280, 80, 0x228B22, 0);
+      scene.physics.add.existing(ground2, true);
 
       //Arcos
       const arcoLeftImage = scene.add.image(25, 550, "arco");
