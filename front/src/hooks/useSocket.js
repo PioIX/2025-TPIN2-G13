@@ -4,7 +4,7 @@ import { useConection } from './useConection';
 
 
 
-const useSocket = (options = { withCredentials: false }, serverUrl = "ws://10.1.5.134:4006/") => { //ACÁ PONER LA IP DEL BACK
+const useSocket = (options = { withCredentials: false }, serverUrl = "ws://10.1.4.160:4006/") => { //ACÁ PONER LA IP DEL BACK
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false) 
   
