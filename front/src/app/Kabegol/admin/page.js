@@ -27,43 +27,78 @@ export default function Admin() {
         admin: false
     })
 
+    
+        
     useEffect(() => {
         const userId = sessionStorage.getItem("userId")
         
         // Obtener info del admin
-        fetch(url + `/findUserById`, {
+        fetch(url + "/findUserById", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({id_user: userId})
-        })
-            .then(res => res.json())
-            .then(data => {
-                setAdminData(data[0])
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                id_user: userId
             })
+        })
+            .then(response => response.json())
+            .then(result => {
+                setAdminData(result[0]);
+                console.log(result[0]);
+    
+                fetch(url + "/traerFotoUsuario?id=" + userId)
+                    .then(r => r.json())
+                    .then(json => {
+                        const raw = json.foto?.[0]?.image?.data;
+                        if (!raw) return;
+    
+                        const u8 = new Uint8Array(raw);
+                        const blob = new Blob([u8], { type: "image/*" });
+                        const objectUrl = URL.createObjectURL(blob);
+                        SetFotoPerfil(objectUrl);
+                    });
+            });
         
-        // Cargar todos los usuarios
-        loadUsers()
-    }, [])
+        // Cargar todos los usuarios (FUERA del fetch anterior)
+        loadUsers();
+
+    }, []) // <-- Este useEffect solo se ejecuta una vez al montar
+        
+        
+
 
     useEffect(() => {
-        // Filtrar usuarios cuando cambia el término de búsqueda
-        if (searchTerm === "") {
-            setFilteredUsers(users)
-        } else {
-            const filtered = users.filter(user => 
-                user.username.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            setFilteredUsers(filtered)
-            setCurrentIndex(0) // Reset al primer usuario filtrado
-        }
-    }, [searchTerm, users])
+    // Filtrar usuarios cuando cambia el término de búsqueda
+    if (searchTerm === "") {
+        setFilteredUsers(users)
+    } else {
+        const filtered = users.filter(user => 
+            user?.username?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        setFilteredUsers(filtered)
+        setCurrentIndex(0) // Reset al primer usuario filtrado
+    }
+}, [searchTerm, users])
 
     const loadUsers = () => {
         fetch(url + "/users")
             .then(res => res.json())
             .then(data => {
-                setUsers(data)
-                setFilteredUsers(data)
+                // Map through users and convert blob images to URLs
+                const usersWithImages = data.map(user => {
+                    if (user.image?.data) {
+                        // If image is stored as blob in database
+                        const u8 = new Uint8Array(user.image.data);
+                        const blob = new Blob([u8], { type: "image/*" });
+                        const objectUrl = URL.createObjectURL(blob);
+                        return { ...user, image: objectUrl };
+                    }
+                    return user;
+                });
+                
+                setUsers(usersWithImages);
+                setFilteredUsers(usersWithImages);
             })
     }
 
@@ -147,7 +182,6 @@ export default function Admin() {
      function handleChangeImage(event) {
         let file = event.target.files[0]
         SetFotoPerfil(file)
-        setPreview(URL.createObjectURL(file))
     }
 
 
