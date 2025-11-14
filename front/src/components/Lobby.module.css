@@ -428,15 +428,21 @@
   }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .lobbyContainer {
     padding: 20px;
+    
+    /* --- 👇 AQUÍ ESTÁ EL ARREGLO PRINCIPAL --- */
+    min-height: 100vh; /* Asegura que al menos ocupe toda la pantalla */
+    height: auto;      /* Permite que el contenido crezca */
+    overflow-y: auto;  /* AÑADE SCROLL VERTICAL */
+    justify-content: flex-start; /* Al scrollar, empieza desde arriba */
   }
 
   .players {
     flex-direction: column;
     gap: 30px;
+    margin-bottom: 30px; /* Reducimos el margen de 50px */
   }
   
   .playerCard,
@@ -448,6 +454,7 @@
   .roomCodeBox {
     padding: 20px 35px;
     font-size: 1.2rem;
+    margin-bottom: 40px; /* Reducimos el margen de 60px */
   }
 
   .roomCodeBox span {
@@ -456,10 +463,3 @@
   }
 }
 
-/* Estilos para el botón de iniciar juego */
-.lobbyContainer > button,
-.lobbyContainer > * > button {
-  position: relative;
-  z-index: 100;
-  pointer-events: auto;
-}

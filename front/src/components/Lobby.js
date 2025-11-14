@@ -54,7 +54,7 @@ export default function Lobby({ code, jugadores, userId, foto }) {
 
         {/* 🔥 Botón visible solo para el host cuando hay 2 jugadores */}
         {soyHost && jugadores.length === 2 && (
-          <Button page="lobby" onClick={onStartGame} text="Iniciar Juego"/>
+          <Button use="playGame" onClick={onStartGame} text="Iniciar Juego"/>
       )}
     </div>
   );

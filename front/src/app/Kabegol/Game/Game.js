@@ -57,6 +57,7 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
+        orientation: "landscape"
       },
     };
 
@@ -64,9 +65,20 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
     gameRef.current = game;
 
     function preload() {
-      this.load.image("background", "/backgrounds/estadio1.png");
+      this.load.image("background", "/backgrounds/estadio2.png");
       this.load.image("arco", "/backgrounds/arcoNormal.png");
       this.load.image("boot", "/backgrounds/Botin.png"); // 👟 Cargar botín
+
+      this.load.image("BotonIzq", "/backgrounds/BtnIzq.png");
+      this.load.image("BotonDer", "/backgrounds/BtnDer.png");
+      this.load.image("BotonJump", "/backgrounds/Jump.png");
+      this.load.image("BotonKick", "/backgrounds/Kick.png");
+      this.load.image("BotonStop", "/backgrounds/Stop.png");
+      this.load.image("BotonContinue", "/backgrounds/Continue.png");
+      this.load.image("BotonExit", "/backgrounds/Exit.png");
+
+      this.load.image('rotate-prompt', '/backgrounds/girarCelu.png');
+
     }
 
     function createSoccerBall(scene) {
@@ -137,6 +149,12 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
 
     function create() {
       const scene = this;
+
+      scene.isMobile = !scene.sys.game.device.os.desktop;
+      scene.mobileKickPressed = false;
+      this.input.addPointer(2);
+      
+      
 
       // Fondo
       const bg = scene.add.image(640, 360, "background");
@@ -232,7 +250,33 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
       scene.physics.add.overlap(ball, goalRight, () => goalScored(1), null, scene);
 
       // UI
-      scoreText = scene.add.text(640, 30, "0 - 0", {
+      if (scene.isMobile == false) {
+          scoreText = scene.add.text(640, 70, "0 - 0", {
+          fontSize: "48px",
+          fill: "#ffffff",
+          fontFamily: "Arial",
+          stroke: "#000000",
+          strokeThickness: 4,
+        }).setOrigin(0.5).setDepth(10);
+
+        timerText = scene.add.text(640, 120, "1:00", {
+          fontSize: "36px",
+          fill: "#ffff00",
+          fontFamily: "Arial",
+          stroke: "#000000",
+          strokeThickness: 3,
+        }).setOrigin(0.5).setDepth(10);
+
+        // 🎬 COUNTDOWN INICIAL
+        countdownText = scene.add.text(640, 360, countdown.toString(), {
+          fontSize: "120px",
+          fill: "#ffffff",
+          fontFamily: "Arial",
+          stroke: "#000000",
+          strokeThickness: 8,
+        }).setOrigin(0.5).setDepth(20);
+      } else {
+        scoreText = scene.add.text(640, 100, "0 - 0", {
         fontSize: "48px",
         fill: "#ffffff",
         fontFamily: "Arial",
@@ -240,7 +284,7 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
         strokeThickness: 4,
       }).setOrigin(0.5).setDepth(10);
 
-      timerText = scene.add.text(640, 90, formatTime(gameTime), {
+      timerText = scene.add.text(640, 160, "1:00", {
         fontSize: "36px",
         fill: "#ffff00",
         fontFamily: "Arial",
@@ -248,6 +292,7 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
         strokeThickness: 3,
       }).setOrigin(0.5).setDepth(10);
 
+      // 🎬 COUNTDOWN INICIAL
       countdownText = scene.add.text(640, 360, countdown.toString(), {
         fontSize: "120px",
         fill: "#ffffff",
@@ -255,16 +300,82 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
         stroke: "#000000",
         strokeThickness: 8,
       }).setOrigin(0.5).setDepth(20);
+      }
+      // ======================== CONTROLES DEL CELULAR + LA COMPUTADORA ================ 
+       // Controles Celu + Compu
+      scene.moveLeft = false;
+      scene.moveRight = false;
+      scene.jumpPressed = false;
 
-      // Controles (añadir R y P para patadas)
-      cursors = scene.input.keyboard.createCursorKeys();
-      keys = scene.input.keyboard.addKeys({
-        w: Phaser.Input.Keyboard.KeyCodes.W,
-        a: Phaser.Input.Keyboard.KeyCodes.A,
-        d: Phaser.Input.Keyboard.KeyCodes.D,
-        r: Phaser.Input.Keyboard.KeyCodes.R, // 👟 Patada jugador 1
-        p: Phaser.Input.Keyboard.KeyCodes.P, // 👟 Patada jugador 2
-      });
+      if (scene.isMobile) {
+        // --- 1. ESTAMOS EN CELULAR: Crear botones ---
+        
+        // (Ajustá estas posiciones y escalas como las tenías en Single Player)
+        const btnAlpha = 0.9;
+        const btnScale = 0.15;
+        const newY = 250; 
+
+        // --- BOTÓN IZQUIERDA ---
+        scene.btnIzquierda = scene.add.image(180, newY, 'BotonIzq')
+            .setScale(btnScale).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
+        
+        scene.btnIzquierda.on('pointerdown', () => { 
+            scene.moveLeft = true; 
+            scene.moveRight = false; // El fix para no ir a 2 lados
+        });
+        scene.btnIzquierda.on('pointerup', () => { scene.moveLeft = false; });
+
+        // --- BOTÓN DERECHA ---
+        scene.btnDerecha = scene.add.image(340, newY, 'BotonDer')
+            .setScale(btnScale).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
+            
+        scene.btnDerecha.on('pointerdown', () => { 
+            scene.moveRight = true; 
+            scene.moveLeft = false; // El fix
+        });
+        scene.btnDerecha.on('pointerup', () => { scene.moveRight = false; });
+
+        // --- BOTÓN JUMP ---
+        scene.btnJump = scene.add.image(940, newY, 'BotonJump')
+            .setScale(0.2).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
+
+        scene.btnJump.on('pointerdown', () => { scene.jumpPressed = true; });
+        scene.btnJump.on('pointerup', () => { scene.jumpPressed = false; });
+            
+        // --- BOTÓN KICK (¡CON SOCKET!) ---
+        scene.btnKick = scene.add.image(1100, newY, 'BotonKick')
+            .setScale(0.2).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
+            
+        scene.btnKick.on('pointerdown', () => {
+            // Identificamos QUÉ jugador y QUÉ botín hay que animar/mover
+            const myPlayer = playerNumberRef.current === 1 ? player1 : player2;
+            const myBoot = playerNumberRef.current === 1 ? boot1 : boot2;
+
+            // 1. Lógica local (igual que en PC)
+            animateKick(myBoot, scene);
+            performKick(myPlayer, ball, 700);
+
+            // 2. Lógica de Red (¡NUEVO!)
+            if (socketRef.current) {
+                socketRef.current.emit("kick", {
+                    code_room,
+                    playerNumber: playerNumberRef.current, // Le dice al server quién pateó
+                    force: 700
+                });
+            }
+        });
+
+    } else {
+        // --- 2. ESTAMOS EN PC: Tus controles de teclado (sin cambios) ---
+        cursors = scene.input.keyboard.createCursorKeys();
+        keys = scene.input.keyboard.addKeys({
+            w: Phaser.Input.Keyboard.KeyCodes.W,
+            a: Phaser.Input.Keyboard.KeyCodes.A,
+            d: Phaser.Input.Keyboard.KeyCodes.D,
+            r: Phaser.Input.Keyboard.KeyCodes.R,
+            p: Phaser.Input.Keyboard.KeyCodes.P,
+        });
+    }
 
       // 🎬 Iniciar cuenta regresiva
       if (playerNumberRef.current === 1) {
@@ -430,6 +541,10 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
             socketRef.current.emit("leaveGame", { code_room });
           }
           window.location.href = "/Kabegol/Home";
+        });
+
+        scene.time.delayedCall(10000, () => {
+          router.replace("/Kabegol/Home");
         });
       }
 
@@ -654,58 +769,73 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
         const speed = 200;
         const jumpPower = -400;
 
-        if (useWASD) {
-          if (keys.a.isDown) {
-            myPlayer.body.setVelocityX(-speed);
-          } else if (keys.d.isDown) {
-            myPlayer.body.setVelocityX(speed);
-          } else {
-            myPlayer.body.setVelocityX(0);
-          }
-
-          if (keys.w.isDown && myPlayer.body.touching.down) {
-            myPlayer.body.setVelocityY(jumpPower);
-          }
-
-          // 👟 TECLA R - Patada Jugador 1
-          if (Phaser.Input.Keyboard.JustDown(keys.r)) {
-            animateKick(myBoot, this);
-            performKick(myPlayer, ball, 700); // 🔥 Cambiar de 500 a 700
-
-            if (socketRef.current) {
-              socketRef.current.emit("kick", {
-                code_room,
-                playerNumber: 1,
-                force: 700 // 🔥 Cambiar de 500 a 700
-              });
+        if (scene.isMobile) {
+            // --- 1. LÓGICA MÓVIL ---
+            if (scene.moveLeft) {
+                myPlayer.body.setVelocityX(-speed);
+            } else if (scene.moveRight) {
+                myPlayer.body.setVelocityX(speed);
+            } else {
+                myPlayer.body.setVelocityX(0);
             }
-          }
+
+            if (scene.jumpPressed && myPlayer.body.touching.down) {
+                myPlayer.body.setVelocityY(jumpPower);
+            }
+            // (La patada ya se manejó en el 'pointerdown' del create)
+
         } else {
-          if (cursors.left.isDown) {
-            myPlayer.body.setVelocityX(-speed);
-          } else if (cursors.right.isDown) {
-            myPlayer.body.setVelocityX(speed);
-          } else {
-            myPlayer.body.setVelocityX(0);
-          }
+            // --- 2. LÓGICA DE TECLADO (tu código original) ---
+            if (useWASD) {
+                // ... (tu código de keys.a, keys.d, keys.w, keys.r) ...
+                // ... (esto queda 100% igual que como lo tenías) ...
+                if (keys.a.isDown) {
+                    myPlayer.body.setVelocityX(-speed);
+                } else if (keys.d.isDown) {
+                    myPlayer.body.setVelocityX(speed);
+                } else {
+                    myPlayer.body.setVelocityX(0);
+                }
 
-          if (cursors.up.isDown && myPlayer.body.touching.down) {
-            myPlayer.body.setVelocityY(jumpPower);
-          }
+                if (keys.w.isDown && myPlayer.body.touching.down) {
+                    myPlayer.body.setVelocityY(jumpPower);
+                }
 
-          // 👟 TECLA P - Patada Jugador 2
-          if (Phaser.Input.Keyboard.JustDown(keys.p)) {
-            animateKick(myBoot, this);
-            performKick(myPlayer, ball, 700); // 🔥 Cambiar de 500 a 700
+                if (Phaser.Input.Keyboard.JustDown(keys.r)) {
+                    animateKick(myBoot, this);
+                    performKick(myPlayer, ball, 700);
+                    if (socketRef.current) {
+                        socketRef.current.emit("kick", {
+                            code_room, playerNumber: 1, force: 700
+                        });
+                    }
+                }
 
-            if (socketRef.current) {
-              socketRef.current.emit("kick", {
-                code_room,
-                playerNumber: 2,
-                force: 700 // 🔥 Cambiar de 500 a 700
-              });
+            } else {
+                // ... (tu código de cursors.left, cursors.right, cursors.up, keys.p) ...
+                // ... (esto queda 100% igual que como lo tenías) ...
+                if (cursors.left.isDown) {
+                    myPlayer.body.setVelocityX(-speed);
+                } else if (cursors.right.isDown) {
+                    myPlayer.body.setVelocityX(speed);
+                } else {
+                    myPlayer.body.setVelocityX(0);
+                }
+
+                if (cursors.up.isDown && myPlayer.body.touching.down) {
+                    myPlayer.body.setVelocityY(jumpPower);
+                }
+
+                if (Phaser.Input.Keyboard.JustDown(keys.p)) {
+                    animateKick(myBoot, this);
+                    performKick(myPlayer, ball, 700);
+                    if (socketRef.current) {
+                        socketRef.current.emit("kick", {
+                            code_room, playerNumber: 2, force: 700
+                        });
+                    }
+                }
             }
-          }
         }
 
         // 👟 Actualizar posición del botín para seguir a la cabeza

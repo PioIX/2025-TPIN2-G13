@@ -18,6 +18,7 @@ export default function Button(props) {
                         [styles.joinBtn] : props.use === "join",
                         [styles.cancelBtn] : props.use === "cancel",
                         [styles.createBtn] : props.use === "create",
+                        [styles.startButton] : props.use === "playGame",
                     }
                 )
             } onClick={props.onClick}>{props.text}</button>
