@@ -15,9 +15,15 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "KabeGol",
   description: "",
+  manifest: "/manifest.json",
   icons: {
     icon: "/backgrounds/Logo.png"
-  }
+  },
+  appleWebApp: {
+    capable: true, // Le dice a Safari que es una "app"
+    statusBarStyle: 'black-translucent', // Estilo de la barra de estado
+    title: 'Kabegol',
+  },
 };
 
 export default function RootLayout({ children }) {

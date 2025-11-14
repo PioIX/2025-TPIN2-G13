@@ -46,6 +46,7 @@ export default function GameSingle({ userId, imageProfile }) {
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
+        orientation: "landscape"
       },
     };
 
@@ -53,9 +54,22 @@ export default function GameSingle({ userId, imageProfile }) {
     gameRef.current = game;
 
     function preload() {
-      this.load.image("background", "/backgrounds/estadio1.png");
+      this.load.image("background", "/backgrounds/estadio2.png");
       this.load.image("arco", "/backgrounds/arcoNormal.png");
       this.load.image("boot", "/backgrounds/Botin.png");
+
+      this.load.image("BotonIzq", "/backgrounds/BtnIzq.png");
+      this.load.image("BotonDer", "/backgrounds/BtnDer.png");
+      this.load.image("BotonJump", "/backgrounds/Jump.png");
+      this.load.image("BotonKick", "/backgrounds/Kick.png");
+      this.load.image("BotonStop", "/backgrounds/Stop.png");
+      this.load.image("BotonContinue", "/backgrounds/Continue.png");
+      this.load.image("BotonExit", "/backgrounds/Exit.png");
+
+      this.load.image('rotate-prompt', '/backgrounds/girarCelu.png');
+
+
+      
       // Cargar foto de perfil si existe
     }
 
@@ -157,6 +171,12 @@ export default function GameSingle({ userId, imageProfile }) {
     function create() {
       const scene = this;
 
+      scene.isMobile = !scene.sys.game.device.os.desktop;
+      scene.mobileKickPressed = false; 
+      this.input.addPointer(2);
+
+      scene.isGamePaused = false;
+      scene.mobileControlsContainer = scene.add.container();
 
       createSoccerBall(scene);
 
@@ -337,7 +357,33 @@ export default function GameSingle({ userId, imageProfile }) {
       }
 
       // UI
-      scoreText = scene.add.text(640, 30, "0 - 0", {
+      if (scene.isMobile == false) {
+          scoreText = scene.add.text(640, 70, "0 - 0", {
+          fontSize: "48px",
+          fill: "#ffffff",
+          fontFamily: "Arial",
+          stroke: "#000000",
+          strokeThickness: 4,
+        }).setOrigin(0.5).setDepth(10);
+
+        timerText = scene.add.text(640, 120, "1:00", {
+          fontSize: "36px",
+          fill: "#ffff00",
+          fontFamily: "Arial",
+          stroke: "#000000",
+          strokeThickness: 3,
+        }).setOrigin(0.5).setDepth(10);
+
+        // 🎬 COUNTDOWN INICIAL
+        countdownText = scene.add.text(640, 360, countdown.toString(), {
+          fontSize: "120px",
+          fill: "#ffffff",
+          fontFamily: "Arial",
+          stroke: "#000000",
+          strokeThickness: 8,
+        }).setOrigin(0.5).setDepth(20);
+      } else {
+        scoreText = scene.add.text(640, 100, "0 - 0", {
         fontSize: "48px",
         fill: "#ffffff",
         fontFamily: "Arial",
@@ -345,7 +391,7 @@ export default function GameSingle({ userId, imageProfile }) {
         strokeThickness: 4,
       }).setOrigin(0.5).setDepth(10);
 
-      timerText = scene.add.text(640, 90, "1:00", {
+      timerText = scene.add.text(640, 160, "1:00", {
         fontSize: "36px",
         fill: "#ffff00",
         fontFamily: "Arial",
@@ -361,15 +407,196 @@ export default function GameSingle({ userId, imageProfile }) {
         stroke: "#000000",
         strokeThickness: 8,
       }).setOrigin(0.5).setDepth(20);
+      }
+      
 
-      // Controles
-      cursors = scene.input.keyboard.createCursorKeys();
-      keys = scene.input.keyboard.addKeys({
-        w: Phaser.Input.Keyboard.KeyCodes.W,
-        a: Phaser.Input.Keyboard.KeyCodes.A,
-        d: Phaser.Input.Keyboard.KeyCodes.D,
-        r: Phaser.Input.Keyboard.KeyCodes.R,
-      });
+      // Controles Celu + Compu
+      scene.moveLeft = false;
+      scene.moveRight = false;
+      scene.jumpPressed = false;
+
+      if (scene.isMobile) {
+        // --- Estamos en CELULAR: Crear botones táctiles ---
+        const btnAlpha = 0.9;
+        const btnScale = 0.15; // O el que te haya gustado
+        const newY = 250;
+        // --- BOTÓN IZQUIERDA ---
+        scene.btnIzquierda = scene.add.image(120, newY, 'BotonIzq')
+            .setScale(btnScale)
+            .setInteractive() // <<< CLAVE: Hacerlo interactivo
+            .setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
+        
+        // <<< NUEVO: Eventos >>>
+        // Cuando el dedo TOCA
+        scene.btnIzquierda.on('pointerdown', () => { scene.moveLeft = true; scene.moveRight= false; });
+        // Cuando el dedo SUELTA
+        scene.btnIzquierda.on('pointerup', () => { scene.moveLeft = false; });
+        
+
+        // --- BOTÓN DERECHA ---
+        scene.btnDerecha = scene.add.image(300, newY, 'BotonDer')
+            .setScale(btnScale).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
+            
+        // <<< NUEVO: Eventos >>>
+        scene.btnDerecha.on('pointerdown', () => { scene.moveRight = true; scene.moveLeft= false; });
+        scene.btnDerecha.on('pointerup', () => { scene.moveRight = false;  });
+        
+
+        // --- BOTÓN JUMP (salto) ---
+        scene.btnJump = scene.add.image(980, newY, 'BotonJump')
+            .setScale(0.2).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
+
+        // <<< NUEVO: Eventos >>>
+        scene.btnJump.on('pointerdown', () => { scene.jumpPressed = true; });
+        scene.btnJump.on('pointerup', () => { scene.jumpPressed = false; });
+            
+        // --- BOTÓN KICK (patada) ---
+        scene.btnKick = scene.add.image(1160, newY, 'BotonKick')
+            .setScale(0.2).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
+            
+        // <<< NUEVO: Evento directo (como JustDown) >>>
+        // Como la patada es un evento de UN toque, la ejecutamos directo.
+        scene.btnKick.on('pointerdown', () => {
+            animateKick(boot1, scene); // Usá 'scene' en lugar de 'this'
+            performKick(player, ball, 700);
+        });
+
+        // (Opcional) Botón de Pausa
+        scene.btnPausa = scene.add.image(1230, 100, 'BotonStop') // Tu código
+          .setScale(0.1)
+          .setInteractive().setScrollFactor(0).setDepth(100);
+        
+
+    } else {
+        // --- Estamos en PC: Crear controles de teclado (tu código original) ---
+        cursors = scene.input.keyboard.createCursorKeys();
+        keys = scene.input.keyboard.addKeys({
+            w: Phaser.Input.Keyboard.KeyCodes.W,
+            a: Phaser.Input.Keyboard.KeyCodes.A,
+            d: Phaser.Input.Keyboard.KeyCodes.D,
+            r: Phaser.Input.Keyboard.KeyCodes.R,
+        });
+        
+    }
+
+    // --- 2. CREACIÓN DEL MENÚ DE PAUSA (OCULTO) ---
+    let centerX2 = scene.cameras.main.centerX;
+    let centerY2 = scene.cameras.main.centerY;
+
+    // El overlay negro semi-transparente
+    scene.pauseOverlay = scene.add.rectangle(centerX2, centerY2, 1280, 720, 0x000000, 0.7)
+        .setScrollFactor(0)
+        .setDepth(199) // Profundidad alta (pero menos que los botones)
+        .setVisible(false);
+
+    // Botón Continuar (cargado de 'BotonContinue')
+    scene.btnContinue = scene.add.image(centerX2, centerY2- 80, 'BotonContinue')
+        .setScale(0.5) // Ajustá la escala
+        .setInteractive().setScrollFactor(0).setDepth(200)
+        .setVisible(false);
+
+    // Botón Salir (cargado de 'BotonExit')
+    scene.btnExit = scene.add.image(centerX2, centerY2 + 80, 'BotonExit')
+        .setScale(0.5) // Ajustá la escala
+        .setInteractive().setScrollFactor(0).setDepth(200)
+        .setVisible(false);
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // 1. Crear el fondo negro que cubrirá toda la pantalla
+    scene.blackOverlay = scene.add.rectangle(
+        scene.cameras.main.centerX, 
+        scene.cameras.main.centerY, 
+        scene.cameras.main.width, 
+        scene.cameras.main.height, 
+        0x000000 // Color negro
+    )
+    .setScrollFactor(0) // Fijo a la cámara
+    .setDepth(199)      // Un poco menos de depth que el mensaje, pero encima de todo lo demás
+    .setVisible(false); // Oculto al empezar
+
+    // 2. Crear el mensaje de "Girar"
+    let centerX = scene.cameras.main.centerX;
+    let centerY = scene.cameras.main.centerY;
+    
+    scene.rotateMessage = scene.add.image(centerX, centerY, 'rotate-prompt')
+        .setScrollFactor(0) // Fijo a la cámara
+        .setDepth(200)      // Encima de TODO
+        .setVisible(false)  // Oculto al empezar
+        // <<< NUEVO: Escalado para que la imagen de "Girá" ocupe bien el espacio >>>
+        // Usamos FIT_HORIZONTALLY o FIT_VERTICALLY dependiendo del contexto,
+        // o directamente ajustamos la escala para que siempre cubra.
+        // Para que se vea bien en ambos casos, podemos calcular la escala.
+        .setScale(0.8); // Ajusta este valor (0.8, 1.0, 1.2) si necesitas que la imagen sea más grande/chica
+                        // Esto hace que la imagen en sí se ajuste, y el fondo negro la cubre.
+
+
+
+    // 3. Escuchar el evento de cambio de orientación
+    scene.scale.on('orientationchange', (orientation) => {
+        if (orientation === Phaser.Scale.PORTRAIT) {
+            // --- Si se pone VERTICAL ---
+            scene.blackOverlay.setVisible(true); // Mostrar fondo negro
+            scene.rotateMessage.setVisible(true); // Mostrar aviso
+            
+            // Ocultar botones (opcional pero recomendado)
+            if (scene.isMobile) {
+                scene.btnIzquierda.setVisible(false);
+                scene.btnDerecha.setVisible(false);
+                scene.btnJump.setVisible(false);
+                scene.btnKick.setVisible(false);
+                scene.btnPausa.setVisible(false);
+            }
+            
+            // Pausar la escena
+            scene.isSystemPaused = true;
+
+        } else if (orientation === Phaser.Scale.LANDSCAPE) {
+            // --- Si se pone HORIZONTAL (¡bien!) ---
+            scene.blackOverlay.setVisible(false); // Ocultar fondo negro
+            scene.rotateMessage.setVisible(false); // Ocultar aviso
+
+            // Mostrar botones
+            if (scene.isMobile) {
+                scene.btnIzquierda.setVisible(true);
+                scene.btnDerecha.setVisible(true);
+                scene.btnJump.setVisible(true);
+                scene.btnKick.setVisible(true);
+                scene.btnPausa.setVisible(true);
+            }
+            
+            // Reanudar la escena
+            scene.isSystemPaused = false;
+        }
+    });
+
+    // 4. Chequeo inicial (por si ya cargó en vertical)
+    if (scene.scale.orientation === Phaser.Scale.PORTRAIT && scene.isMobile) {
+        scene.blackOverlay.setVisible(true); // Mostrar fondo negro desde el inicio
+        scene.rotateMessage.setVisible(true);
+        if (scene.isMobile) { // Ocultar botones de una
+            scene.btnIzquierda.setVisible(false);
+            scene.btnDerecha.setVisible(false);
+            scene.btnJump.setVisible(false);
+            scene.btnKick.setVisible(false);
+            scene.btnPausa.setVisible(false);
+        }
+        scene.isSystemPaused = true;
+    }
+    
 
       // Iniciar juego después de 3 segundos
       scene.time.addEvent({
@@ -442,6 +669,8 @@ export default function GameSingle({ userId, imageProfile }) {
         player.body.setVelocity(0, 0);
         cpu.body.setVelocity(0, 0);
         ball.body.setVelocity(0, 0);
+        
+        
 
         // Pantalla Game Over
         const overlay = scene.add.rectangle(640, 360, 1280, 720, 0x000000, 0.8);
@@ -461,7 +690,7 @@ export default function GameSingle({ userId, imageProfile }) {
         }).setOrigin(0.5).setDepth(51);
 
         // Score final
-        const finalScoreText = scene.add.text(640, 270, `${score1} - ${scoreCPU}`, {
+        const finalScoreText = scene.add.text(640, 350, `${score1} - ${scoreCPU}`, {
           fontSize: "64px",
           fill: "#ffffff",
           fontFamily: "Arial",
@@ -579,25 +808,52 @@ export default function GameSingle({ userId, imageProfile }) {
     function update(time) {
       const scene = this
       if (!gameStarted || gameOver) return;
+      if (scene.isSystemPaused) return;
 
-      // 🎮 Controles del JUGADOR
-      if (keys.a.isDown) {
-        player.body.setVelocityX(-250);
-      } else if (keys.d.isDown) {
-        player.body.setVelocityX(250);
+      if (scene.isMobile) {
+        // Movimiento (isDown)
+        // Movimiento
+        if (scene.moveLeft) {
+            player.body.setVelocityX(-250);
+        } else if (scene.moveRight) {
+            player.body.setVelocityX(250);
+        } else {
+            player.body.setVelocityX(0);
+        }
+
+        // Salto
+        if (scene.jumpPressed && player.body.touching.down) {
+            player.body.setVelocityY(-450);
+        }
+
+        
+        // Si suelta el botón, reseteamos la marca
+        if (!scene.btnKick.isDown) {
+            scene.mobileKickPressed = false;
+        }
+
+
       } else {
-        player.body.setVelocityX(0);
-      }
+        // ================= CONTROLES PC =================
+        if (keys.a.isDown) {
+            player.body.setVelocityX(-250);
+        } else if (keys.d.isDown) {
+            player.body.setVelocityX(250);
+        } else {
+            player.body.setVelocityX(0);
+        }
 
-      // 👟 Patada jugador (igual que en multi: tecla R, anim + performKick con 700)
-      if (Phaser.Input.Keyboard.JustDown(keys.r)) {
-        animateKick(boot1, this);
-        performKick(player, ball, 700);
-      }
+        // 👟 Patada jugador
+        if (Phaser.Input.Keyboard.JustDown(keys.r)) {
+            animateKick(boot1, this);
+            performKick(player, ball, 700);
+        }
 
+        // Salto
+        if (keys.w.isDown && player.body.touching.down) {
+            player.body.setVelocityY(-450);
+        }
 
-      if (keys.w.isDown && player.body.touching.down) {
-        player.body.setVelocityY(-450);
       }
 
       // Actualizar botín
