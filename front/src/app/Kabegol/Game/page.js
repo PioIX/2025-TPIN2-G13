@@ -106,15 +106,34 @@ export default function GamePage() {
     }
 
     return (
-        <div style={{ width: "100vw", height: "100vh", backgroundColor: "#111" }}>
-            <Game 
-                socket={socket} 
-                code_room={code_room} 
-                playerNumber={playerNumber}
-                userId={userId}
-                imageP1={imageP1}  // 🔥 Pasar imagen P1
-                imageP2={imageP2}  // 🔥 Pasar imagen P2
-            />
+        <div style={{
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "#111",
+            display: "flex",        
+            justifyContent: "center", 
+            alignItems: "center"      
+            }}>
+            
+            {/* 2. El "Rectángulo" (el contenedor 16:9 del juego) */}
+            <div style={{
+                width: "100%",     // Que intente ocupar el 100% del ancho
+                height: "100%",    // Que intente ocupar el 100% del alto
+                maxWidth: "100vw", // Pero no más ancho que la pantalla
+                maxHeight: "100vh", // Pero no más alto que la pantalla
+                aspectRatio: "16 / 9" // <<< LA MAGIA (1280/720)
+            }}>
+                <Game 
+                    socket={socket} 
+                    code_room={code_room} 
+                    playerNumber={playerNumber}
+                    userId={userId}
+                    imageP1={imageP1}  // 🔥 Pasar imagen P1
+                    imageP2={imageP2}  // 🔥 Pasar imagen P2
+                />
+            </div>
         </div>
+        
+        
     );
 }

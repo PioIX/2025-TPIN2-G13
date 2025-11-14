@@ -211,3 +211,42 @@ background-color: #ffffff;
   transform: translateY(2px);
   box-shadow: 0 3px 0 #3161C7, 0 4px 10px rgba(106, 143, 252, 0.4);
 }
+
+.startButton {
+  background-color: #ffd400;
+  color: #1a1a1a;
+  border: none;
+  padding: 18px 40px; /* Un poco más grande y cómodo */
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  /* --- 👇 MEJORAS DE LAYOUT Y ANIMACIÓN --- */
+  position: relative; /* Para que z-index funcione */
+  z-index: 100;      /* Se asegura de estar sobre las animaciones */
+  margin-top: 10px;  /* Espacio entre las player cards y el botón */
+  margin-bottom: 20px; /* Un poco de aire al final del scroll */
+  
+  /* Animación de "listo para jugar" */
+  animation: pulse-ready 2s infinite;
+}
+
+.startButton:hover {
+  background-color: #ffb800;
+  transform: translateY(-5px); /* Efecto hover más notorio */
+}
+
+/* Animación de pulso que te había sugerido */
+@keyframes pulse-ready {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 10px 30px rgba(255, 212, 0, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(255, 212, 0, 0.5);
+  }
+}
+
