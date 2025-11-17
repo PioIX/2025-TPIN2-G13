@@ -308,14 +308,10 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
       scene.jumpPressed = false;
 
       if (scene.isMobile) {
-        // --- 1. ESTAMOS EN CELULAR: Crear botones ---
-        
-        // (Ajustá estas posiciones y escalas como las tenías en Single Player)
         const btnAlpha = 0.9;
         const btnScale = 0.15;
         const newY = 250; 
 
-        // --- BOTÓN IZQUIERDA ---
         scene.btnIzquierda = scene.add.image(180, newY, 'BotonIzq')
             .setScale(btnScale).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
         
@@ -325,7 +321,6 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
         });
         scene.btnIzquierda.on('pointerup', () => { scene.moveLeft = false; });
 
-        // --- BOTÓN DERECHA ---
         scene.btnDerecha = scene.add.image(340, newY, 'BotonDer')
             .setScale(btnScale).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
             
@@ -335,26 +330,22 @@ export default function Game({ socket, code_room, playerNumber, userId }) {
         });
         scene.btnDerecha.on('pointerup', () => { scene.moveRight = false; });
 
-        // --- BOTÓN JUMP ---
         scene.btnJump = scene.add.image(940, newY, 'BotonJump')
             .setScale(0.2).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
 
         scene.btnJump.on('pointerdown', () => { scene.jumpPressed = true; });
         scene.btnJump.on('pointerup', () => { scene.jumpPressed = false; });
             
-        // --- BOTÓN KICK (¡CON SOCKET!) ---
         scene.btnKick = scene.add.image(1100, newY, 'BotonKick')
             .setScale(0.2).setInteractive().setScrollFactor(0).setAlpha(btnAlpha).setDepth(100);
             
         scene.btnKick.on('pointerdown', () => {
-            // Identificamos QUÉ jugador y QUÉ botín hay que animar/mover
             const myPlayer = playerNumberRef.current === 1 ? player1 : player2;
             const myBoot = playerNumberRef.current === 1 ? boot1 : boot2;
-
             // 1. Lógica local (igual que en PC)
             animateKick(myBoot, scene);
             performKick(myPlayer, ball, 700);
-
+            
             // 2. Lógica de Red (¡NUEVO!)
             if (socketRef.current) {
                 socketRef.current.emit("kick", {
