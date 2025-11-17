@@ -15,7 +15,7 @@ En resumen, la aplicación busca integrar diversión, interacción social y comp
 
 Tabla Base de datos:
 
-<img width="620" height="223" alt="image" src="..//2025-TPIN2-G13/front/public/backgrounds/imagenreadme.png" />
+<img width="620" height="223" alt="image" src="front/public/backgrounds/imagenreadme.png" />
 
 
 Objetivos:
